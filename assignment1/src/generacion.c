@@ -25,7 +25,7 @@ void escribir_segmento_codigo(FILE* fpasm){
 
 void escribir_inicio_main(FILE* fpasm){
     fprintf(fpasm, "main:\n");
-    fprintf(fpasm, "mov __esp esp\n");
+    fprintf(fpasm, "mov [__esp], esp\n");
 }
 
 void escribir_fin(FILE* fpasm){
@@ -35,7 +35,7 @@ void escribir_fin(FILE* fpasm){
     fprintf(fpasm, "add esp, 4\n");
     fprintf(fpasm, "jmp fin_f\n");
     fprintf(fpasm, "fin_f:\n");
-    fprintf(fpasm, "mov esp __esp\n");
+    fprintf(fpasm, "mov esp, [__esp]\n");
     fprintf(fpasm, "ret\n");
 }
 
@@ -52,7 +52,7 @@ void asignar(FILE* fpasm, char* nombre, int es_variable){
         fprintf(fpasm, "pop dword ebx\n");
         fprintf(fpasm, "mov _%s, [ebx]\n", nombre);
     }else{
-        fprintf(fpasm, "pop dword _%s \n", nombre);
+        fprintf(fpasm, "pop dword [_%s] \n", nombre);
     }
 }
 
