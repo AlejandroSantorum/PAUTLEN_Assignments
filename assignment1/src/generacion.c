@@ -29,14 +29,14 @@ void escribir_inicio_main(FILE* fpasm){
 }
 
 void escribir_fin(FILE* fpasm){
+    fprintf(fpasm, "fin_f:\n");
+    fprintf(fpasm, "mov esp, [__esp]\n");
+    fprintf(fpasm, "ret\n");
     fprintf(fpasm, "div_zero_f:\n");
     fprintf(fpasm, "push dword div_zero\n");
     fprintf(fpasm, "call print_string\n");
     fprintf(fpasm, "add esp, 4\n");
     fprintf(fpasm, "jmp fin_f\n");
-    fprintf(fpasm, "fin_f:\n");
-    fprintf(fpasm, "mov esp, [__esp]\n");
-    fprintf(fpasm, "ret\n");
 }
 
 void escribir_operando(FILE* fpasm, char* nombre, int es_variable){
@@ -57,9 +57,9 @@ void asignar(FILE* fpasm, char* nombre, int es_variable){
 }
 
 void _pop_valores_reg(FILE* fpasm, int es_variable_1, int es_variable_2){
+    fprintf(fpasm, "pop dword ebx\n");
     fprintf(fpasm, "pop dword eax\n");
     if (es_variable_1) fprintf(fpasm, "mov eax, [eax]\n");
-    fprintf(fpasm, "pop dword ebx\n");
     if (es_variable_2) fprintf(fpasm, "mov ebx, [ebx]\n");
 }
 
@@ -212,4 +212,5 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
         default:        break;
     }
     fprintf(fpasm, "add esp, 4\n"); //TODO: Preguntar si esto está bien.
+    fprintf(fpasm, "call print_endofline\n");
 }
