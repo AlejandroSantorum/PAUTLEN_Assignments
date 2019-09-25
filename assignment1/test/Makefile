@@ -5,7 +5,7 @@ EJS=ej1
 TESTS=test_ej1
 all: $(TESTS)
 
-test_ej1: test_generacion.c $(SRC)/generacion.o
+test_ej1: test_ej1.c $(SRC)/generacion.o
 	$(CC) $(CFLAGS) $^ -o $@
 	./$@ ej1.asm
 	nasm -g -o ej1.o -f elf32 ej1.asm
