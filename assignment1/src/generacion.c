@@ -215,3 +215,25 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
     fprintf(fpasm, "add esp, 4\n"); //TODO: Preguntar si esto está bien.
     fprintf(fpasm, "call print_endofline\n");
 }
+
+void suma_iterativa(FILE *fpasm, char *nombre1, char *nombre2){
+    leer(fpasm, nombre1, ENTERO);
+    leer(fpasm, nombre2, ENTERO);
+    fprintf(fpasm, "mov ebx, [_%s]\n", nombre2);
+    fprintf(fpasm, "cmp ebx, 0\n");
+    fprintf(fpasm, "jne sigue_sumando\n");
+    fprintf(fpasm, "fin_suma_iterativa:\n");
+    fprintf(fpasm, "ret\n");
+    fprintf(fpasm, "sigue_sumando:\n");
+    fprintf(fpasm, "mov eax, [_%s]\n", nombre1);
+    fprintf(fpasm, "add ebx, eax\n");
+    fprintf(fpasm, "push dword ebx\n");
+    fprintf(fpasm, "call print_int\n");
+    fprintf(fpasm, "add esp, 4\n");
+    fprintf(fpasm, "call print_endofline\n");
+    leer(fpasm, nombre1, ENTERO);
+    fprintf(fpasm, "mov eax, [_%s]\n", nombre1);
+    fprintf(fpasm, "cmp eax, 0\n");
+    fprintf(fpasm, "je fin_suma_iterativa\n");
+    fprintf(fpasm, "jmp sigue_sumando\n");
+}

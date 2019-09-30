@@ -114,4 +114,8 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);
 void leer(FILE* fpasm, char* nombre, int tipo);
 void escribir(FILE* fpasm, int es_variable, int tipo);
 
+
+/* EJERCICIO OPCIONAL 1 */
+void suma_iterativa(FILE *fpasm, char *nombre1, char *nombre2);
+
 #endif

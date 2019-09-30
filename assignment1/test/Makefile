@@ -29,5 +29,11 @@ test_ej4: test_ej4.c $(SRC)/generacion.o
 	nasm -g -o ej4.o -f elf32 ej4.asm
 	gcc -m32 -o ej4 ej4.o ../lib/alfalib.o
 
+opcional1: ej1_opcional.c $(SRC)/generacion.o
+	$(CC) $(CFLAGS) $^ -o $@
+	./$@ ej1_opcional.asm
+	nasm -g -o ej1_opcional.o -f elf32 ej1_opcional.asm
+	gcc -m32 -o ej1_opcional ej1_opcional.o ../lib/alfalib.o
+
 clean:
-	rm -rf *.o $(TESTS) *.asm $(EJS)
+	rm -rf *.o $(TESTS) *.asm $(EJS) ej1_opcional opcional1
