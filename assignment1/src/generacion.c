@@ -10,6 +10,7 @@ void escribir_subseccion_data(FILE* fpasm){
     fprintf(fpasm, "segment .data\n");
     // Byte 10 represents end of line in asm
     fprintf(fpasm, "div_zero db \"Dividing by 0\",10,0\n");
+    fprintf(fpasm, "out_of_range db \"Accessing a memory out of range\",10,0\n");
 }
 
 void declarar_variable(FILE* fpasm, char * nombre,  int tipo,  int tamano){
@@ -33,8 +34,15 @@ void escribir_fin(FILE* fpasm){
     fprintf(fpasm, "fin_f:\n");
     fprintf(fpasm, "mov esp, [__esp]\n");
     fprintf(fpasm, "ret\n");
+
     fprintf(fpasm, "div_zero_f:\n");
     fprintf(fpasm, "push dword div_zero\n");
+    fprintf(fpasm, "call print_string\n");
+    fprintf(fpasm, "add esp, 4\n");
+    fprintf(fpasm, "jmp fin_f\n");
+
+    fprintf(fpasm, "out_of_range_f:\n");
+    fprintf(fpasm, "push dword out_of_range\n");
     fprintf(fpasm, "call print_string\n");
     fprintf(fpasm, "add esp, 4\n");
     fprintf(fpasm, "jmp fin_f\n");
@@ -248,7 +256,7 @@ void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta) {
 
 void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta) {
     fprintf(fpasm, "pop dword eax\n");
-    if (exp_es_variable == 1)
+    if (exp_es_variable)
         fprintf(fpasm, "mov eax, [eax]\n");
     fprintf(fpasm, "cmp eax, 0\n");
     fprintf(fpasm, "je fin_then_%d\n", etiqueta);
@@ -265,4 +273,88 @@ void ifthenelse_fin_then( FILE * fpasm, int etiqueta) {
 
 void ifthenelse_fin( FILE * fpasm, int etiqueta) {
     fprintf(fpasm, "fin_else_%d:\n", etiqueta);
+}
+
+void while_inicio(FILE * fpasm, int etiqueta){
+    fprintf(fpasm, "inicio_while_%d:\n", etiqueta);
+}
+
+void while_exp_pila (FILE * fpasm, int exp_es_variable, int etiqueta){
+    fprintf(fpasm, "pop dword eax\n");
+    if (exp_es_variable)
+        fprintf(fpasm, "mov eax, [eax]\n");
+    fprintf(fpasm, "cmp eax, 0\n");
+    fprintf(fpasm, "je fin_while_%d\n", etiqueta);
+}
+
+void while_fin(FILE * fpasm, int etiqueta){
+    fprintf(fpasm, "jmp inicio_while_%d\n", etiqueta);
+    fprintf(fpasm, "fin_while_%d:\n", etiqueta);
+}
+
+void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, int exp_es_direccion){
+    fprintf(fpasm, "pop dword eax\n");
+    if (exp_es_direccion)
+        fprintf(fpasm, "mov eax, [eax]\n");
+    fprintf(fpasm, "cmp eax, 0\n");
+    fprintf(fpasm, "jl out_of_range_f\n");
+    fprintf(fpasm, "cmp eax, %d-1\n", tam_max);
+    fprintf(fpasm, "jg out_of_range_f\n");
+    fprintf(fpasm, "mov edx, _%s\n", nombre_vector);
+    fprintf(fpasm, "lea eax, [edx + eax*4]\n");
+    fprintf(fpasm, "push dword eax\n");
+}
+
+void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc){
+    fprintf(fd_asm, "_%s:\n", nombre_funcion);
+    fprintf(fd_asm, "push ebp\n");
+    fprintf(fd_asm, "mov ebp, esp\n");
+    fprintf(fd_asm, "sub esp, 4*%d\n", num_var_loc);
+}
+
+void retornarFuncion(FILE * fd_asm, int es_variable){
+    fprintf(fd_asm, "pop dword eax\n");
+    if (es_variable)
+        fprintf(fd_asm, "mov dword eax, [eax]\n");
+    fprintf(fd_asm, "mov esp, ebp\n");
+    fprintf(fd_asm, "pop dword ebp\n");
+    fprintf(fd_asm, "ret\n");
+}
+
+void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros){
+    int d_ebp;
+    d_ebp = 4*(1 + (num_total_parametros - pos_parametro));
+
+    fprintf(fpasm, "lea eax, [ebp + %d]\n", d_ebp);
+    fprintf(fpasm, "push dword eax\n");
+}
+
+void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
+    int d_ebp;
+    d_ebp = 4*posicion_variable_local;
+    fprintf(fpasm, "lea eax, [ebp - %d]\n", d_ebp);
+    fprintf(fpasm, "push dword eax\n");
+
+}
+
+void asignarDestinoEnPila(FILE* fpasm, int es_variable){
+
+}
+
+void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
+    if (es_variable){
+        fprintf(fd_asm, "pop dword eax\n");
+        fprintf(fd_asm, "mov eax, [eax]\n");
+        fprintf(fd_asm, "push dword eax\n");
+    }
+}
+
+void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
+    fprintf(fd_asm, "call %s\n", nombre_funcion);
+    limpiarPila(fd_asm, num_argumentos);
+}
+
+void limpiarPila(FILE * fd_asm, int num_argumentos){
+    fprintf(fd_asm, "add esp, 4*%d\n", num_argumentos);
+    fprintf(fd_asm, "push dword eax\n");
 }

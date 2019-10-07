@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-g
 SRC=../src
-EJS=ej1 ej2 ej3 ej4
-TESTS=test_ej1 test_ej2 test_ej3 test_ej4
+EJS=ej1 ej2 ej3 ej4 ej5 ej6 ej7
+TESTS=test_ej1 test_ej2 test_ej3 test_ej4 test_ej5 test_ej6 test_ej7
 all: $(TESTS)
 
 test_ej1: test_ej1.c $(SRC)/generacion.o
@@ -28,6 +28,24 @@ test_ej4: test_ej4.c $(SRC)/generacion.o
 	./$@ ej4.asm
 	nasm -g -o ej4.o -f elf32 ej4.asm
 	gcc -m32 -o ej4 ej4.o ../lib/alfalib.o
+
+test_ej5: test_ej5.c $(SRC)/generacion.o
+	$(CC) $(CFLAGS) $^ -o $@
+	./$@ ej5.asm
+	nasm -g -o ej5.o -f elf32 ej5.asm
+	gcc -m32 -o ej5 ej5.o ../lib/alfalib.o
+
+test_ej6: test_ej6.c $(SRC)/generacion.o
+	$(CC) $(CFLAGS) $^ -o $@
+	./$@ ej6.asm
+	nasm -g -o ej6.o -f elf32 ej6.asm
+	gcc -m32 -o ej6 ej6.o ../lib/alfalib.o
+
+test_ej7: test_ej7.c $(SRC)/generacion.o
+	$(CC) $(CFLAGS) $^ -o $@
+	./$@ ej7.asm
+	nasm -g -o ej7.o -f elf32 ej7.asm
+	gcc -m32 -o ej7 ej7.o ../lib/alfalib.o
 
 opcional1: ej1_opcional.c $(SRC)/generacion.o
 	$(CC) $(CFLAGS) $^ -o $@
