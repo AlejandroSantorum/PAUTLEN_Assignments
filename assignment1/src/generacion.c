@@ -315,7 +315,7 @@ void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc){
 void retornarFuncion(FILE * fd_asm, int es_variable){
     fprintf(fd_asm, "pop dword eax\n");
     if (es_variable)
-        fprintf(fd_asm, "mov dword eax, [eax]\n");
+        fprintf(fd_asm, "mov eax, [eax]\n");
     fprintf(fd_asm, "mov esp, ebp\n");
     fprintf(fd_asm, "pop dword ebp\n");
     fprintf(fd_asm, "ret\n");
@@ -324,7 +324,6 @@ void retornarFuncion(FILE * fd_asm, int es_variable){
 void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros){
     int d_ebp;
     d_ebp = 4*(1 + (num_total_parametros - pos_parametro));
-
     fprintf(fpasm, "lea eax, [ebp + %d]\n", d_ebp);
     fprintf(fpasm, "push dword eax\n");
 }
@@ -334,7 +333,6 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
     d_ebp = 4*posicion_variable_local;
     fprintf(fpasm, "lea eax, [ebp - %d]\n", d_ebp);
     fprintf(fpasm, "push dword eax\n");
-
 }
 
 void asignarDestinoEnPila(FILE* fpasm, int es_variable){
