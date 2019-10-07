@@ -213,3 +213,32 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
     }
     fprintf(fpasm, "add esp, 4\n"); //TODO: Preguntar si esto está bien.
 }
+
+void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta) {
+    fprintf(fpasm, "pop dword eax\n");
+    if (exp_es_variable == 1)
+        fprintf(fpasm, "mov eax, [eax]\n");
+    fprintf(fpasm, "cmp eax, 0\n");
+    fprintf(fpasm, "je fin_then_else_%d\n", etiqueta);
+}
+
+void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta) {
+    fprintf(fpasm, "pop dword eax\n");
+    if (exp_es_variable == 1)
+        fprintf(fpasm, "mov eax, [eax]\n");
+    fprintf(fpasm, "cmp eax, 0\n");
+    fprintf(fpasm, "je fin_then_%d\n", etiqueta);
+}
+
+void ifthen_fin(FILE * fpasm, int etiqueta) {
+    fprintf(fpasm, "fin_then_%d:\n", etiqueta);
+}
+
+void ifthenelse_fin_then( FILE * fpasm, int etiqueta) {
+    fprintf(fpasm, "jmp fin_else_%d\n", etiqueta);
+    fprintf(fpasm, "fin_then_else_%d:\n", etiqueta);
+}
+
+void ifthenelse_fin( FILE * fpasm, int etiqueta) {
+    fprintf(fpasm, "fin_else_%d:\n", etiqueta);
+}

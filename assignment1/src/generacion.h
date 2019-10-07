@@ -114,4 +114,11 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);
 void leer(FILE* fpasm, char* nombre, int tipo);
 void escribir(FILE* fpasm, int es_variable, int tipo);
 
+
+/* FUNCIONES DE CONTROL DEL FLUJO DEL PROGRAMA */
+void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
+void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
+void ifthen_fin(FILE * fpasm, int etiqueta);
+void ifthenelse_fin_then(FILE * fpasm, int etiqueta);
+void ifthenelse_fin(FILE * fpasm, int etiqueta);
 #endif
