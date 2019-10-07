@@ -8,7 +8,8 @@ void escribir_cabecera_bss(FILE* fpasm){
 void escribir_subseccion_data(FILE* fpasm){
     //TODO: Considerar errores de libreria
     fprintf(fpasm, "segment .data\n");
-    fprintf(fpasm, "div_zero db \"Dividing by 0\",0\n");
+    // Byte 10 represents end of line in asm
+    fprintf(fpasm, "div_zero db \"Dividing by 0\",10,0\n");
 }
 
 void declarar_variable(FILE* fpasm, char * nombre,  int tipo,  int tamano){
@@ -29,14 +30,14 @@ void escribir_inicio_main(FILE* fpasm){
 }
 
 void escribir_fin(FILE* fpasm){
+    fprintf(fpasm, "fin_f:\n");
+    fprintf(fpasm, "mov esp, [__esp]\n");
+    fprintf(fpasm, "ret\n");
     fprintf(fpasm, "div_zero_f:\n");
     fprintf(fpasm, "push dword div_zero\n");
     fprintf(fpasm, "call print_string\n");
     fprintf(fpasm, "add esp, 4\n");
     fprintf(fpasm, "jmp fin_f\n");
-    fprintf(fpasm, "fin_f:\n");
-    fprintf(fpasm, "mov esp, [__esp]\n");
-    fprintf(fpasm, "ret\n");
 }
 
 void escribir_operando(FILE* fpasm, char* nombre, int es_variable){
@@ -57,9 +58,9 @@ void asignar(FILE* fpasm, char* nombre, int es_variable){
 }
 
 void _pop_valores_reg(FILE* fpasm, int es_variable_1, int es_variable_2){
+    fprintf(fpasm, "pop dword ebx\n");
     fprintf(fpasm, "pop dword eax\n");
     if (es_variable_1) fprintf(fpasm, "mov eax, [eax]\n");
-    fprintf(fpasm, "pop dword ebx\n");
     if (es_variable_2) fprintf(fpasm, "mov ebx, [ebx]\n");
 }
 
@@ -87,7 +88,7 @@ void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
     fprintf(fpasm, "cmp ebx, 0\n");
     fprintf(fpasm, "je div_zero_f\n");
     fprintf(fpasm, "idiv ebx\n");
-    fprintf(fpasm, "push dword, eax\n");
+    fprintf(fpasm, "push dword eax\n");
 }
 
 void o(FILE* fpasm, int es_variable_1, int es_variable_2){
@@ -116,7 +117,7 @@ void no(FILE* fpasm, int es_variable, int cuantos_no){
     fprintf(fpasm, "je escribe_true_%d\n", cuantos_no);
     fprintf(fpasm, "push dword 0\n");
     fprintf(fpasm, "jmp fin_%d\n", cuantos_no);
-    fprintf(fpasm, "escribe_true_%d:", cuantos_no);
+    fprintf(fpasm, "escribe_true_%d:\n", cuantos_no);
     fprintf(fpasm, "push dword 1\n");
     fprintf(fpasm, "fin_%d:\n", cuantos_no);
 }
@@ -126,10 +127,10 @@ void igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
     fprintf(fpasm, "cmp eax, ebx\n");
     fprintf(fpasm, "je igual_%d\n", etiqueta);
     fprintf(fpasm, "push dword 0\n");
-    fprintf(fpasm, "jmp igual_fin_%d", etiqueta);
+    fprintf(fpasm, "jmp igual_fin_%d\n", etiqueta);
     fprintf(fpasm, "igual_%d:\n", etiqueta);
     fprintf(fpasm, "push dword 1\n");
-    fprintf(fpasm, "igual_fin_%d:", etiqueta);
+    fprintf(fpasm, "igual_fin_%d:\n", etiqueta);
 }
 
 void distinto(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
@@ -137,10 +138,10 @@ void distinto(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
     fprintf(fpasm, "cmp eax, ebx\n");
     fprintf(fpasm, "jne distinto_%d\n", etiqueta);
     fprintf(fpasm, "push dword 0\n");
-    fprintf(fpasm, "jmp distinto_fin_%d", etiqueta);
+    fprintf(fpasm, "jmp distinto_fin_%d\n", etiqueta);
     fprintf(fpasm, "distinto_%d:\n", etiqueta);
     fprintf(fpasm, "push dword 1\n");
-    fprintf(fpasm, "distinto_fin_%d:", etiqueta);
+    fprintf(fpasm, "distinto_fin_%d:\n", etiqueta);
 }
 
 void menor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
@@ -148,10 +149,10 @@ void menor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
     fprintf(fpasm, "cmp eax, ebx\n");
     fprintf(fpasm, "jle menor_igual_%d\n", etiqueta);
     fprintf(fpasm, "push dword 0\n");
-    fprintf(fpasm, "jmp menor_igual_fin_%d", etiqueta);
+    fprintf(fpasm, "jmp menor_igual_fin_%d\n", etiqueta);
     fprintf(fpasm, "menor_igual_%d:\n", etiqueta);
     fprintf(fpasm, "push dword 1\n");
-    fprintf(fpasm, "menor_igual_fin_%d:", etiqueta);
+    fprintf(fpasm, "menor_igual_fin_%d:\n", etiqueta);
 }
 
 void mayor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
@@ -159,10 +160,10 @@ void mayor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
     fprintf(fpasm, "cmp eax, ebx\n");
     fprintf(fpasm, "jge mayor_igual_%d\n", etiqueta);
     fprintf(fpasm, "push dword 0\n");
-    fprintf(fpasm, "jmp mayor_igual_fin_%d", etiqueta);
+    fprintf(fpasm, "jmp mayor_igual_fin_%d\n", etiqueta);
     fprintf(fpasm, "mayor_igual_%d:\n", etiqueta);
     fprintf(fpasm, "push dword 1\n");
-    fprintf(fpasm, "mayor_igual_fin_%d:", etiqueta);
+    fprintf(fpasm, "mayor_igual_fin_%d:\n", etiqueta);
 }
 
 void menor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
@@ -170,10 +171,10 @@ void menor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
     fprintf(fpasm, "cmp eax, ebx\n");
     fprintf(fpasm, "jl menor_%d\n", etiqueta);
     fprintf(fpasm, "push dword 0\n");
-    fprintf(fpasm, "jmp menor_fin_%d", etiqueta);
+    fprintf(fpasm, "jmp menor_fin_%d\n", etiqueta);
     fprintf(fpasm, "menor_%d:\n", etiqueta);
     fprintf(fpasm, "push dword 1\n");
-    fprintf(fpasm, "menor_fin_%d:", etiqueta);
+    fprintf(fpasm, "menor_fin_%d:\n", etiqueta);
 }
 
 void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
@@ -181,10 +182,10 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
     fprintf(fpasm, "cmp eax, ebx\n");
     fprintf(fpasm, "jg mayor_%d\n", etiqueta);
     fprintf(fpasm, "push dword 0\n");
-    fprintf(fpasm, "jmp mayor_fin_%d", etiqueta);
+    fprintf(fpasm, "jmp mayor_fin_%d\n", etiqueta);
     fprintf(fpasm, "mayor_%d:\n", etiqueta);
     fprintf(fpasm, "push dword 1\n");
-    fprintf(fpasm, "mayor_fin_%d:", etiqueta);
+    fprintf(fpasm, "mayor_fin_%d:\n", etiqueta);
 }
 
 void leer(FILE* fpasm, char* nombre, int tipo){
@@ -212,6 +213,29 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
         default:        break;
     }
     fprintf(fpasm, "add esp, 4\n"); //TODO: Preguntar si esto está bien.
+    fprintf(fpasm, "call print_endofline\n");
+}
+
+void suma_iterativa(FILE *fpasm, char *nombre1, char *nombre2){
+    leer(fpasm, nombre1, ENTERO);
+    leer(fpasm, nombre2, ENTERO);
+    fprintf(fpasm, "mov ebx, [_%s]\n", nombre2);
+    fprintf(fpasm, "cmp ebx, 0\n");
+    fprintf(fpasm, "jne sigue_sumando\n");
+    fprintf(fpasm, "fin_suma_iterativa:\n");
+    fprintf(fpasm, "ret\n");
+    fprintf(fpasm, "sigue_sumando:\n");
+    fprintf(fpasm, "mov eax, [_%s]\n", nombre1);
+    fprintf(fpasm, "add ebx, eax\n");
+    fprintf(fpasm, "push dword ebx\n");
+    fprintf(fpasm, "call print_int\n");
+    fprintf(fpasm, "add esp, 4\n");
+    fprintf(fpasm, "call print_endofline\n");
+    leer(fpasm, nombre1, ENTERO);
+    fprintf(fpasm, "mov eax, [_%s]\n", nombre1);
+    fprintf(fpasm, "cmp eax, 0\n");
+    fprintf(fpasm, "je fin_suma_iterativa\n");
+    fprintf(fpasm, "jmp sigue_sumando\n");
 }
 
 void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta) {

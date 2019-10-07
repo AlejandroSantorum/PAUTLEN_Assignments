@@ -114,6 +114,8 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);
 void leer(FILE* fpasm, char* nombre, int tipo);
 void escribir(FILE* fpasm, int es_variable, int tipo);
 
+/* EJERCICIO OPCIONAL 1 */
+void suma_iterativa(FILE *fpasm, char *nombre1, char *nombre2);
 
 /* FUNCIONES DE CONTROL DEL FLUJO DEL PROGRAMA */
 void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
@@ -121,4 +123,5 @@ void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
 void ifthen_fin(FILE * fpasm, int etiqueta);
 void ifthenelse_fin_then(FILE * fpasm, int etiqueta);
 void ifthenelse_fin(FILE * fpasm, int etiqueta);
+
 #endif
