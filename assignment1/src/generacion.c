@@ -338,7 +338,11 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
 }
 
 void asignarDestinoEnPila(FILE* fpasm, int es_variable){
-
+    // fprintf(fpasm, "pop dword ebx\n");
+    // fprintf(fpasm, "pop dword eax\n");
+    // if (es_variable)
+    //     fprintf(fpasm, "mov eax, [eax]\n");
+    // fprintf(fpasm, "mov dword [ebx], eax\n");
 }
 
 void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
@@ -352,9 +356,9 @@ void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
 void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
     fprintf(fd_asm, "call %s\n", nombre_funcion);
     limpiarPila(fd_asm, num_argumentos);
+    fprintf(fd_asm, "push dword eax\n");
 }
 
 void limpiarPila(FILE * fd_asm, int num_argumentos){
     fprintf(fd_asm, "add esp, 4*%d\n", num_argumentos);
-    fprintf(fd_asm, "push dword eax\n");
 }

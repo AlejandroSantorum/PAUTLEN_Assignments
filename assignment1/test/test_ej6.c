@@ -4,6 +4,20 @@
 #include "../src/generacion.h"
 #define MAX_ETIQUETAS 255
 
+// main{
+//     	int m;
+//     	m = 0;
+//     	if(m>5)
+//     	{
+//             	printf 2;
+//     	}
+//     	else
+//     	{
+//             	printf 3;
+//     	}
+// }
+
+
 int main (int argc, char ** argv)
 {
 
@@ -35,7 +49,7 @@ int main (int argc, char ** argv)
     	etiquetas[cima_etiquetas]=getiqueta;
     	etiqueta = getiqueta;
 
-//Condición del if. Salto a fin si, si la condicion se da.
+        //Condición del if. Salto a fin si, si la condicion se da.
     	escribir_operando(fd_asm,"m",1);
     	escribir_operando(fd_asm,"5",0);
     	mayor(fd_asm,1,0,etiqueta);

@@ -5,6 +5,21 @@
 #include "../src/generacion.h"
 #define MAX_ETIQUETAS 255
 
+
+
+
+// main {
+//     	int m;
+//     	int [4] v;
+//     	m = 0;
+//     	while ( m <= 4 ){
+//             	printf m;
+//             	v[m] = m*10;
+//             	m = m + 1;
+//     	}
+// }
+
+
 int main (int argc, char ** argv)
 {
 
@@ -33,7 +48,7 @@ int main (int argc, char ** argv)
     asignar(fd_asm,"m",0);
 
 
-       //While. Gestion inicial de las etiquetas, guardado de etiqueta.
+   //While. Gestion inicial de las etiquetas, guardado de etiqueta.
     getiqueta++;
     cima_etiquetas++;
     etiquetas[cima_etiquetas]=getiqueta;
