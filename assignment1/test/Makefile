@@ -59,5 +59,11 @@ opcional2: ej2_opcional.c $(SRC)/generacion.o
 	nasm -g -o ej2_opcional.o -f elf32 ej2_opcional.asm
 	gcc -m32 -o ej2_opcional ej2_opcional.o ../lib/alfalib.o
 
+opcional3: ej3_opcional.c $(SRC)/generacion.o
+	$(CC) $(CFLAGS) $^ -o $@
+	./$@ ej3_opcional.asm
+	nasm -g -o ej3_opcional.o -f elf32 ej3_opcional.asm
+	gcc -m32 -o ej3_opcional ej3_opcional.o ../lib/alfalib.o
+
 clean:
 	rm -rf *.o $(TESTS) *.asm $(EJS) ej1_opcional opcional1

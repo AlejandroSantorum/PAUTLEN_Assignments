@@ -4,6 +4,21 @@
 #include "../src/generacion.h"
 #define MAX_ETIQUETAS 255
 
+
+
+// main{
+//     	int z;
+//     	function int doble(int arg)
+//     	{
+//             	int auxArg;
+//             	auxArg = arg;
+//             	return 2*arg;
+//     	}
+//     	z=2;
+//     	printf doble(z);
+// }
+
+
 int main (int argc, char ** argv)
 {
         int etiqueta = 0;
@@ -50,7 +65,7 @@ int main (int argc, char ** argv)
 
 	//Llamamos a la funcion que tiene 1 argumento. Estamos dando un salto a la etiqueta. Primero apilamos el parametro.
 	operandoEnPilaAArgumento(fd_asm,1);
-	llamarFuncion(fd_asm,"_doble",1);
+	llamarFuncion(fd_asm,"doble",1);
 
 
 	//Imprimimos el resultado de la funcion.

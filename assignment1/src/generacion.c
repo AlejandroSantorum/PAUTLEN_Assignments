@@ -352,7 +352,7 @@ void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
 }
 
 void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
-    fprintf(fd_asm, "call %s\n", nombre_funcion);
+    fprintf(fd_asm, "call _%s\n", nombre_funcion);
     limpiarPila(fd_asm, num_argumentos);
     fprintf(fd_asm, "push dword eax\n");
 }
