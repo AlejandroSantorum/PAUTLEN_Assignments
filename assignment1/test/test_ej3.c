@@ -41,7 +41,7 @@ int main (int argc, char** argv)
 
 	/* y=x/2;*/
 	escribir_operando(salida,"x",1);
-	escribir_operando(salida,"0",0);
+	escribir_operando(salida,"2",0);
 	dividir(salida,1,0);
 	asignar(salida,"y",0);
 

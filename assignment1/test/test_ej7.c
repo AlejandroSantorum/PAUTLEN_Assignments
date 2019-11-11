@@ -4,21 +4,6 @@
 #include "../src/generacion.h"
 #define MAX_ETIQUETAS 255
 
-
-
-// main{
-//     	int z;
-//     	function int doble(int arg)
-//     	{
-//             	int auxArg;
-//             	auxArg = arg;
-//             	return 2*arg;
-//     	}
-//     	z=2;
-//     	printf doble(z);
-// }
-
-
 int main (int argc, char ** argv)
 {
         int etiqueta = 0;
@@ -44,7 +29,7 @@ int main (int argc, char ** argv)
 	//auxArg = arg; Asignacion de parametro a variable local. Solo hay un parametro.
 	escribirParametro(fd_asm,0,1);
 	escribirVariableLocal(fd_asm,1);
-	//asignarDestinoEnPila(fd_asm,1);
+	asignarDestinoEnPila(fd_asm,1);
 
 	//2*arg.
 	escribir_operando(fd_asm,"2",0);
@@ -57,7 +42,7 @@ int main (int argc, char ** argv)
 	escribir_inicio_main(fd_asm);
 	//z=2
 	escribir_operando(fd_asm,"2",0);
-        asignar(fd_asm,"z",0);
+       asignar(fd_asm,"z",0);
 
 	escribir_operando(fd_asm,"z",1);
 

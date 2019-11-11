@@ -336,11 +336,11 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
 }
 
 void asignarDestinoEnPila(FILE* fpasm, int es_variable){
-    // fprintf(fpasm, "pop dword ebx\n");
-    // fprintf(fpasm, "pop dword eax\n");
-    // if (es_variable)
-    //     fprintf(fpasm, "mov eax, [eax]\n");
-    // fprintf(fpasm, "mov dword [ebx], eax\n");
+    fprintf(fpasm, "pop dword ebx\n");
+    fprintf(fpasm, "pop dword eax\n");
+    if (es_variable)
+        fprintf(fpasm, "mov eax, [eax]\n");
+    fprintf(fpasm, "mov dword [ebx], eax\n");
 }
 
 void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){

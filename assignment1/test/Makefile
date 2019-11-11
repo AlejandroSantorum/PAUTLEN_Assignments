@@ -66,4 +66,4 @@ opcional3: ej3_opcional.c $(SRC)/generacion.o
 	gcc -m32 -o ej3_opcional ej3_opcional.o ../lib/alfalib.o
 
 clean:
-	rm -rf *.o $(TESTS) *.asm $(EJS) ej1_opcional opcional1
+	rm -rf *.o $(TESTS) *.asm $(EJS) ej1_opcional opcional1 ej2_opcional opcional2 ej3_opcional opcional3
