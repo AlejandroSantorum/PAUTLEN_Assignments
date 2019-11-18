@@ -15,6 +15,17 @@ int main(){
   }
   printf("Created!\n");
 
+  printf("Inserting one element...\n");
+  if(hash_tb_insert(ht, "Francesco Virgolini", 45)){
+      perror("Unable to insert into the hash table");
+      return -1;
+  }
+  printf("Inserted!\n");
+
+  printf("Printing hash table...\n");
+  hash_tb_print(ht);
+  printf("Printed!\n");
+
   printf("Deleting Hash table...\n");
   hash_tb_delete(ht);
   printf("Deleted!\n");
