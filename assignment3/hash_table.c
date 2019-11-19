@@ -247,3 +247,37 @@ int hash_tb_insert(hash_tb *ht, char *key, int value){
 
     return 0;
 }
+
+
+int _ht_arr_isKey(ht_arr *harr, char *key){
+    if(!harr){
+        perror("hash table array NULL pointer when checking the key presence");
+        return -1;
+    }
+
+    for(int i=0; i<(harr->insert_idx); i++){
+        if(!strcmp(harr->item_arr[i]->key, key)) return 1;
+    }
+    return 0;
+}
+
+int hash_tb_isKey(hash_tb *ht, char *key){
+    int hashcode;
+
+    if(!ht){
+        perror("Hash table NULL pointer when checking the key presence");
+        return -1;
+    }
+    if(!key){
+        perror("key NULL pointer when checking the key presence");
+        return -1;
+    }
+
+    hashcode = _hash_code(key, ht->ht_sz);
+    if(hashcode < 0){
+        perror("hashcode invalid value when checking the key presence");
+        return -1;
+    }
+
+    return _ht_arr_isKey(ht->ht_arr[hashcode], key);
+}
