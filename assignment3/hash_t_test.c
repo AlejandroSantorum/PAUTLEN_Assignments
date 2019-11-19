@@ -32,11 +32,24 @@ int main(){
   else if(ret == 0) printf("Key is NOT in the hash table [WRONG outcome]\n");
   else if(ret == 1) printf("Key IS IN the hash table [GOOD outcome]\n");
 
+  int val;
+  printf("···> Getting value of introduced key...\n");
+  ret = hash_tb_get(ht, "Francesco Virgolini", &val);
+  if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
+  else if(ret == 0) printf("Key is NOT in the hash table [WRONG outcome]\n");
+  else if(ret == 1) printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val);
+
   printf("···> Checking presence of non-introduced key...\n");
   ret = hash_tb_isKey(ht, "Francesco Virgolini 2");
   if(ret == -1) printf("Error when checking key [WRONG outcome]\n");
   else if(ret == 0) printf("Key is NOT in the hash table [GOOD outcome]\n");
   else if(ret == 1) printf("Key IS IN the hash table [WRONG outcome]\n");
+
+  printf("···> Getting value of non-introduced key...\n");
+  ret = hash_tb_get(ht, "Francesco Virgolini 2", &val);
+  if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
+  else if(ret == 0) printf("Key is NOT in the hash table [GOOD outcome]\n");
+  else if(ret == 1) printf("Key IS IN the hash table [WRONG outcome] and the value is %d\n", val);
 
   printf("\n···> Deleting Hash table...\n");
   hash_tb_delete(ht);

@@ -16,5 +16,7 @@ int hash_tb_insert(hash_tb *ht, char *key, int value);
 
 int hash_tb_isKey(hash_tb *ht, char *key);
 
+int hash_tb_get(hash_tb *ht, char *key, int *value);
+
 
 #endif /* HASH_TABLE_H */

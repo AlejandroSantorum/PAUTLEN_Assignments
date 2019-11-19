@@ -281,3 +281,40 @@ int hash_tb_isKey(hash_tb *ht, char *key){
 
     return _ht_arr_isKey(ht->ht_arr[hashcode], key);
 }
+
+
+int _ht_arr_get(ht_arr *harr, char *key, int *value){
+    if(!harr){
+        perror("hash table array NULL pointer when getting the key");
+        return -1;
+    }
+
+    for(int i=0; i<(harr->insert_idx); i++){
+        if(!strcmp(harr->item_arr[i]->key, key)){
+            *value = harr->item_arr[i]->value;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int hash_tb_get(hash_tb *ht, char *key, int *value){
+    int hashcode;
+
+    if(!ht){
+        perror("Hash table NULL pointer when getting key");
+        return -1;
+    }
+    if(!key){
+        perror("key NULL pointer when getting key");
+        return -1;
+    }
+
+    hashcode = _hash_code(key, ht->ht_sz);
+    if(hashcode < 0){
+        perror("hashcode invalid value when getting key");
+        return -1;
+    }
+
+    return _ht_arr_get(ht->ht_arr[hashcode], key, value);
+}
