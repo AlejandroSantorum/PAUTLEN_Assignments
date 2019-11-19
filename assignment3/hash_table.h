@@ -6,7 +6,7 @@
 typedef struct _hash_tb hash_tb;
 
 
-hash_tb * hash_tb_create(int ht_sz);
+hash_tb * hash_tb_create(size_t ht_sz, size_t chain_sz, size_t dyn_resz);
 
 void hash_tb_delete(hash_tb *ht);
 

@@ -8,7 +8,7 @@ int main(){
   hash_tb *ht=NULL;
 
   printf("Creating Hash table...\n");
-  ht = hash_tb_create(16);
+  ht = hash_tb_create(16, 8, 1);
   if(!ht){
     printf("Memory Error: Unable to allocate memory for the hash table\n");
     return -1;

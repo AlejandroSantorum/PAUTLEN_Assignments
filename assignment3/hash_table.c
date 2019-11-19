@@ -12,15 +12,16 @@ typedef struct _ht_item{
 }ht_item;
 
 typedef struct _ht_arr{
-  ht_item** item_arr;
-  size_t base_sz;
-  size_t curr_sz;
-  size_t insert_idx;
+    ht_item** item_arr;
+    size_t chain_base_sz;
+    size_t curr_sz;
+    size_t insert_idx;
+    size_t dyn_resz;
 } ht_arr;
 
 struct _hash_tb{
-  ht_arr **ht_arr;
-  size_t ht_sz;
+    ht_arr **ht_arr;
+    size_t ht_sz;
 };
 
 
@@ -78,7 +79,7 @@ int _ht_item_print(ht_item *hitem){
     return 0;
 }
 
-ht_arr * _ht_arr_create(size_t base_sz){
+ht_arr * _ht_arr_create(size_t chain_base_sz, size_t dyn_resz){
     ht_arr *harr=NULL;
 
     harr = (ht_arr *) calloc(1, sizeof(ht_arr));
@@ -86,11 +87,12 @@ ht_arr * _ht_arr_create(size_t base_sz){
         perror("Unable to allocate memory for ht item array");
         return NULL;
     }
-    harr->base_sz = base_sz;
-    harr->curr_sz = base_sz;
+    harr->chain_base_sz = chain_base_sz;
+    harr->curr_sz = chain_base_sz;
     harr->insert_idx = 0;
+    harr->dyn_resz = dyn_resz;
 
-    harr->item_arr = (ht_item **) calloc(base_sz, sizeof(ht_item *));
+    harr->item_arr = (ht_item **) calloc(chain_base_sz, sizeof(ht_item *));
     if(!(harr->item_arr)){
         perror("Unable to allocate memory for ht_item array in a ht_arr object");
         return NULL;
@@ -135,10 +137,10 @@ int _ht_arr_print(ht_arr *harr, int i){
     return chars;
 }
 
-hash_tb * hash_tb_create(int ht_sz){
+hash_tb * hash_tb_create(size_t ht_sz, size_t chain_sz, size_t dyn_resz){
     hash_tb *ht=NULL;
 
-    if(ht_sz <= 0){
+    if(ht_sz <= 0 || chain_sz <= 0){
         perror("Hash table size too low");
         return NULL;
     }
@@ -157,7 +159,7 @@ hash_tb * hash_tb_create(int ht_sz){
     }
 
     for(int i=0; i<ht_sz; i++){
-        if(!(ht->ht_arr[i] = _ht_arr_create(ht_sz))){
+        if(!(ht->ht_arr[i] = _ht_arr_create(chain_sz, dyn_resz))){
             printf("Unable to allocate memory for ht array in hash table index %d\n", i);
             return NULL;
         }
@@ -198,6 +200,10 @@ int _ht_arr_insert(ht_arr *harr, char *key, int value){
         return -1;
     }
 
+    if((harr->insert_idx == harr->curr_sz) && !(harr->dyn_resz)){
+        return -1;
+    }
+
     if(!(harr->item_arr[harr->insert_idx] = _ht_item_create())){
         perror("Unable to allocate memory for a new ht_item when inserting");
         return -1;
@@ -209,8 +215,8 @@ int _ht_arr_insert(ht_arr *harr, char *key, int value){
     harr->item_arr[harr->insert_idx]->value = value;
 
     harr->insert_idx++;
-    if(harr->insert_idx == harr->curr_sz){
-        harr->curr_sz += harr->base_sz;
+    if(harr->insert_idx == harr->curr_sz && harr->dyn_resz){
+        harr->curr_sz += harr->chain_base_sz;
         harr->item_arr = realloc(harr->item_arr, harr->curr_sz);
     }
     return 0;
