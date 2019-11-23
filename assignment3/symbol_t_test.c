@@ -25,14 +25,14 @@ int main(){
     printf("Inserted!\n\n");
 
     printf("···> Searching introduced key in global table...\n");
-    if(symb_tb_search(st, "uno")){
+    if(symb_tb_isKey(st, "uno")){
         printf("Search in global table FAILED\n");
         return -1;
     }
     printf("Found!\n\n");
 
     printf("···> Searching non-introduced key in global table...\n");
-    if(!symb_tb_search(st, "dos")){
+    if(!symb_tb_isKey(st, "dos")){
         printf("Search in global table FAILED\n");
         return -1;
     }
@@ -55,21 +55,21 @@ int main(){
     printf("Inserted!\n\n");
 
     printf("···> Searching introduced key in local table...\n");
-    if(symb_tb_search(st, "dos")){
+    if(symb_tb_isKey(st, "dos")){
         printf("Search in local table FAILED\n");
         return -1;
     }
     printf("Found!\n\n");
 
     printf("···> Searching non-introduced key in local table...\n");
-    if(!symb_tb_search(st, "tres")){
+    if(!symb_tb_isKey(st, "tres")){
         printf("Search in local table FAILED\n");
         return -1;
     }
     printf("Not Found!\n\n");
 
     printf("···> Searching non-introduced key in local table but introduced in global table...\n");
-    if(symb_tb_search(st, "uno")){
+    if(symb_tb_isKey(st, "uno")){
         printf("Search in global table FAILED\n");
         return -1;
     }
@@ -94,7 +94,7 @@ int main(){
     printf("Domain deleted!\n\n");
 
     printf("···> Searching introduced key in local table...\n");
-    if(!symb_tb_search(st, "dos")){
+    if(!symb_tb_isKey(st, "dos")){
         printf("Found! (WRONG CASE)\n");
         return -1;
     }

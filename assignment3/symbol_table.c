@@ -98,7 +98,7 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
 }
 
 
-int symb_tb_search(symbol_tb *symb_tb, char *key){
+int symb_tb_isKey(symbol_tb *symb_tb, char *key){
     if(!symb_tb){
         perror("Symbol table NULL pointer when searching");
         return -1;
@@ -112,10 +112,33 @@ int symb_tb_search(symbol_tb *symb_tb, char *key){
     /* We must search first at local domain */
     if(symb_tb->local){
         /* If the key is found in local domain, it's no needed to keep searching */
-        if(hash_tb_isKey(symb_tb->local, key) == 1) return 0;
+        if(hash_tb_isKey(symb_tb->local, key) == 1) return 1;
     }
     /* If local search fails, we must search in global table */
-    if(hash_tb_isKey(symb_tb->global, key) == 1) return 0;
+    if(hash_tb_isKey(symb_tb->global, key) == 1) return 1;
+    /* Not found (or memory error at hash_tb_isKey funct's) */
+    return 0;
+}
+
+
+int symb_tb_search(symbol_tb *symb_tb, char *key, int *value){
+    if(!symb_tb){
+        perror("Symbol table NULL pointer when searching");
+        return -1;
+    }
+    if(!key){
+        perror("Key NULL pointer when searching");
+        return -1;
+    }
+
+    /* If local table is not NULL we are in a local domain */
+    /* We must search first at local domain */
+    if(symb_tb->local){
+        /* If the key is found in local domain, it's no needed to keep searching */
+        if(hash_tb_get(symb_tb->local, key, value) == 1) return 0;
+    }
+    /* If local search fails, we must search in global table */
+    if(hash_tb_get(symb_tb->global, key, value) == 1) return 0;
     /* Not found (or memory error at hash_tb_isKey funct's) */
     return -1;
 }

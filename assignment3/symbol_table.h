@@ -11,7 +11,9 @@ void symb_tb_delete(symbol_tb *symb_tb);
 
 int symb_tb_insert(symbol_tb *symb_tb, char *key, int value);
 
-int symb_tb_search(symbol_tb *symb_tb, char *key);
+int symb_tb_isKey(symbol_tb *symb_tb, char *key);
+
+int symb_tb_search(symbol_tb *symb_tb, char *key, int *value);
 
 
 #endif /* SYMBOL_TABLE_H */
