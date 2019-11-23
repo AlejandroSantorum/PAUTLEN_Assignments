@@ -1,8 +1,11 @@
 CC = gcc
 CFLAGS=-Wall
-EXE=hash_t_test symbol_t_test
+EXE=hash_t_test symbol_t_test prueba_tabla
 
 all: $(EXE)
+
+prueba_tabla: prueba_tabla.c hash_table.o symbol_table.o
+	$(CC) $(CFLAGS) $^ -o $@
 
 symbol_t_test: symbol_t_test.c hash_table.o symbol_table.o
 	$(CC) $(CFLAGS) $^ -o $@
