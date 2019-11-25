@@ -217,7 +217,7 @@ int _ht_arr_insert(ht_arr *harr, char *key, int value){
     harr->insert_idx++;
     if(harr->insert_idx == harr->curr_sz && harr->dyn_resz){
         harr->curr_sz += harr->chain_base_sz;
-        harr->item_arr = realloc(harr->item_arr, harr->curr_sz);
+        harr->item_arr = realloc(harr->item_arr, harr->curr_sz*sizeof(ht_item));
     }
     return 0;
 }
@@ -274,6 +274,7 @@ int hash_tb_isKey(hash_tb *ht, char *key){
     }
 
     hashcode = _hash_code(key, ht->ht_sz);
+
     if(hashcode < 0){
         perror("hashcode invalid value when checking the key presence");
         return -1;

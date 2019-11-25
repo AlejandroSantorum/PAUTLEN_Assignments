@@ -50,13 +50,21 @@ int main(int argc, char **argv){
         memset(id_str, 0, BUFF_SZ);
         if(strchr(buff, ' ')){
             sscanf(buff, "%s %d\n", id_str, &num);
-            if(symb_tb_insert(st, id_str, num) == 0) print_succ_insert(fout, id_str);
-            else print_fail_insert(fout, id_str);
+            if(symb_tb_insert(st, id_str, num) == 0){
+                print_succ_insert(fout, id_str);
+            }
+            else{
+                print_fail_insert(fout, id_str);
+            }
         }
         else{
             sscanf(buff, "%s\n", id_str);
-            if(symb_tb_search(st, id_str, &value) == 0) print_succ_search(fout, id_str, value);
-            else print_fail_search(fout, id_str);
+            if(symb_tb_search(st, id_str, &value) == 0){
+                print_succ_search(fout, id_str, value);
+            }
+            else{
+                print_fail_search(fout, id_str);
+            }
         }
         memset(buff, 0, BUFF_SZ);
     }

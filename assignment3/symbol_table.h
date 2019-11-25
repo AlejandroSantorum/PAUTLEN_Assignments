@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define MAX_LOCAL_TB 1024
+
 typedef struct _symbol_tb symbol_tb;
 
 symbol_tb * symb_tb_create();

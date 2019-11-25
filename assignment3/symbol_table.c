@@ -14,7 +14,8 @@
 
 struct _symbol_tb{
     hash_tb *global;
-    hash_tb *local;
+    hash_tb *local[MAX_LOCAL_TB];
+    int current_local_tb;
 };
 
 
@@ -33,7 +34,7 @@ symbol_tb * symb_tb_create(){
         return NULL;
     }
 
-    sym_tb->local = NULL;
+    sym_tb->current_local_tb = -1;
 
     return sym_tb;
 }
@@ -42,7 +43,9 @@ symbol_tb * symb_tb_create(){
 void symb_tb_delete(symbol_tb *symb_tb){
     if(symb_tb){
         if(symb_tb->global) hash_tb_delete(symb_tb->global);
-        if(symb_tb->local) hash_tb_delete(symb_tb->local);
+        for(int i=0; i<=symb_tb->current_local_tb; i++){
+            if(symb_tb->local[i]) hash_tb_delete(symb_tb->local[i]);
+        }
         free(symb_tb);
     }
 }
@@ -60,31 +63,48 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
             /* The domain already exists at the global table */
             return -1;
         }
+        for(int i=0; i<=symb_tb->current_local_tb; i++){
+            if(hash_tb_isKey(symb_tb->local[i], key) == 1){
+                /* The domain already exists at one of the created local tables */
+                return -1;
+            }
+        }
+        if(symb_tb->current_local_tb == MAX_LOCAL_TB-1){
+            /* Unable to create a new domain because the limit is already reached */
+            return -1;
+        }
         /* Inserting in global table */
         hash_tb_insert(symb_tb->global, key, value);
-        /* Creating local table */
-        symb_tb->local = hash_tb_create(HASH_TB_SIZE, HASH_TB_CHAIN_SIZE, HT_DYN_RESZ_BOOL);
-        /* Inserting in local table */
-        hash_tb_insert(symb_tb->local, key, value);
+        for(int j=0; j<=symb_tb->current_local_tb; j++){
+            hash_tb_insert(symb_tb->local[j], key, value);
+        }
+        symb_tb->current_local_tb++; /* New domain index */
+        /* Creating new local table */
+        symb_tb->local[symb_tb->current_local_tb] = hash_tb_create(HASH_TB_SIZE, HASH_TB_CHAIN_SIZE, HT_DYN_RESZ_BOOL);
+        /* Inserting in the new local table */
+        hash_tb_insert(symb_tb->local[symb_tb->current_local_tb], key, value);
     }
     /* Closing domain */
     else if(value == CLOSURE_CONST && !strcmp(CLOSURE_STR, key)){
-        /* Deleting local table */
-        if(symb_tb->local) hash_tb_delete(symb_tb->local);
-        symb_tb->local = NULL;
+        /* Deleting current local table */
+        if(symb_tb->local[symb_tb->current_local_tb]){
+            hash_tb_delete(symb_tb->local[symb_tb->current_local_tb]);
+        }
+        symb_tb->local[symb_tb->current_local_tb] = NULL;
+        symb_tb->current_local_tb--;
     }
     /* New element */
     else{
-        /* Local table initialized */
-        if(symb_tb->local){
-            if(hash_tb_isKey(symb_tb->local, key) == 1){
-                /* The element already exists at the local table */
+        /* If any local table is initialized */
+        if(symb_tb->current_local_tb>=0){
+            if(hash_tb_isKey(symb_tb->local[symb_tb->current_local_tb], key) == 1){
+                /* The element already exists at the current local table */
                 return -1;
             }
-            /* Inserting in local table */
-            hash_tb_insert(symb_tb->local, key, value);
+            /* Inserting in current local table */
+            hash_tb_insert(symb_tb->local[symb_tb->current_local_tb], key, value);
         }
-        /* Local table NOT initialized ==>  Trying to insert in global table */
+        /* ZERO local table initialized ==>  Trying to insert in global table */
         else{
             if(hash_tb_isKey(symb_tb->global, key) == 1){
                 /* The element already exists at the global table */
@@ -108,11 +128,13 @@ int symb_tb_isKey(symbol_tb *symb_tb, char *key){
         return -1;
     }
 
-    /* If local table is not NULL we are in a local domain */
-    /* We must search first at local domain */
-    if(symb_tb->local){
-        /* If the key is found in local domain, it's no needed to keep searching */
-        if(hash_tb_isKey(symb_tb->local, key) == 1) return 1;
+    /* If any local table is not NULL we are in a local domain */
+    /* We must search first at local domains */
+    if(symb_tb->current_local_tb>=0){
+        for(int i=symb_tb->current_local_tb; i>=0; i--){
+            /* If the key is found in any local domain, it's no needed to keep searching */
+            if(hash_tb_isKey(symb_tb->local[i], key) == 1) return 1;
+        }
     }
     /* If local search fails, we must search in global table */
     if(hash_tb_isKey(symb_tb->global, key) == 1) return 1;
@@ -131,11 +153,13 @@ int symb_tb_search(symbol_tb *symb_tb, char *key, int *value){
         return -1;
     }
 
-    /* If local table is not NULL we are in a local domain */
-    /* We must search first at local domain */
-    if(symb_tb->local){
-        /* If the key is found in local domain, it's no needed to keep searching */
-        if(hash_tb_get(symb_tb->local, key, value) == 1) return 0;
+    /* If any local table is not NULL we are in a local domain */
+    /* We must search first at local domains */
+    if(symb_tb->current_local_tb>=0){
+        for(int i=symb_tb->current_local_tb; i>=0; i--){
+            /* If the key is found in any local domain, it's no needed to keep searching */
+            if(hash_tb_get(symb_tb->local[i], key, value) == 1) return 0;
+        }
     }
     /* If local search fails, we must search in global table */
     if(hash_tb_get(symb_tb->global, key, value) == 1) return 0;
