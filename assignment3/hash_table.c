@@ -6,23 +6,23 @@
 
 #define HASHCODE_LEN 3
 
-typedef struct _ht_item{
-    char *key;
-    int value;
-}ht_item;
-
-typedef struct _ht_arr{
-    ht_item** item_arr;
-    size_t chain_base_sz;
-    size_t curr_sz;
-    size_t insert_idx;
-    size_t dyn_resz;
-} ht_arr;
-
-struct _hash_tb{
-    ht_arr **ht_arr;
-    size_t ht_sz;
-};
+// typedef struct _ht_item{
+//     char *key;
+//     int value;
+// }ht_item;
+//
+// typedef struct _ht_arr{
+//     ht_item** item_arr;
+//     size_t chain_base_sz;
+//     size_t curr_sz;
+//     size_t insert_idx;
+//     size_t dyn_resz;
+// } ht_arr;
+//
+// struct _hash_tb{
+//     ht_arr **ht_arr;
+//     size_t ht_sz;
+// };
 
 
 
@@ -87,6 +87,7 @@ ht_arr * _ht_arr_create(size_t chain_base_sz, size_t dyn_resz){
         perror("Unable to allocate memory for ht item array");
         return NULL;
     }
+
     harr->chain_base_sz = chain_base_sz;
     harr->curr_sz = chain_base_sz;
     harr->insert_idx = 0;
@@ -114,8 +115,10 @@ ht_arr * _ht_arr_create(size_t chain_base_sz, size_t dyn_resz){
 void _ht_arr_delete(ht_arr *harr){
     if(harr){
         if(harr->item_arr){
-            for(int i=0; i<(harr->curr_sz); i++){
-                if(harr->item_arr[i]) _ht_item_delete(harr->item_arr[i]);
+            for(int i=0; i<harr->insert_idx; i++){
+                if(harr->item_arr[i]){
+                    _ht_item_delete(harr->item_arr[i]);
+                }
             }
             free(harr->item_arr);
         }
@@ -150,6 +153,7 @@ hash_tb * hash_tb_create(size_t ht_sz, size_t chain_sz, size_t dyn_resz){
         perror("Unable to allocate memory for hash table");
         return NULL;
     }
+
     ht->ht_sz = ht_sz;
 
     ht->ht_arr = (ht_arr **) calloc(ht_sz, sizeof(ht_arr *));
@@ -215,9 +219,13 @@ int _ht_arr_insert(ht_arr *harr, char *key, int value){
     harr->item_arr[harr->insert_idx]->value = value;
 
     harr->insert_idx++;
-    if(harr->insert_idx == harr->curr_sz && harr->dyn_resz){
+    if((harr->insert_idx == harr->curr_sz) && harr->dyn_resz){
         harr->curr_sz += harr->chain_base_sz;
-        harr->item_arr = realloc(harr->item_arr, harr->curr_sz*sizeof(ht_item));
+        harr->item_arr = realloc(harr->item_arr, harr->curr_sz * sizeof(ht_item*));
+        if(!harr->item_arr){
+            perror("Unable to REallocate memory for a new ht_arr when inserting");
+            return -1;
+        }
     }
     return 0;
 }

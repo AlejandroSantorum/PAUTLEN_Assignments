@@ -22,6 +22,11 @@ int main(int argc, char **argv){
     int num, value;
     symbol_tb *st=NULL;
 
+    //DEBUG
+    printf("==================================================================\n");
+    printf("==================================================================\n");
+    printf("==================================================================\n");
+
     if(argc < 3){
         printf("Insufficient input parameters:\n\tUsage: ./%s input_file_name output_file_name\n", __FILE__);
         return -1;
@@ -56,6 +61,9 @@ int main(int argc, char **argv){
             else{
                 print_fail_insert(fout, id_str);
             }
+
+            //DEBUG
+            printf("out %d\n", st->current_local_tb);
         }
         else{
             sscanf(buff, "%s\n", id_str);
