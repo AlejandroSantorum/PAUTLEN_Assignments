@@ -22,7 +22,7 @@
 symbol_tb * symb_tb_create(){
     symbol_tb *sym_tb;
 
-    sym_tb = calloc(1, sizeof(sym_tb));
+    sym_tb = calloc(1, sizeof(symbol_tb));
     if(!sym_tb){
         perror("Unable to allocate memory for symbol table");
         return NULL;

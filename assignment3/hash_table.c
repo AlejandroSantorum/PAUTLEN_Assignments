@@ -220,10 +220,10 @@ int _ht_arr_insert(ht_arr *harr, char *key, int value){
 
     harr->insert_idx++;
     if((harr->insert_idx == harr->curr_sz) && harr->dyn_resz){
-        harr->curr_sz += harr->chain_base_sz;
+        harr->curr_sz *= 2;
         harr->item_arr = realloc(harr->item_arr, harr->curr_sz * sizeof(ht_item*));
         if(!harr->item_arr){
-            perror("Unable to REallocate memory for a new ht_arr when inserting");
+            perror("Unable to Reallocate memory for a new ht_arr when inserting");
             return -1;
         }
     }

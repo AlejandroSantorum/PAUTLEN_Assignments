@@ -77,6 +77,7 @@ int main(int argc, char **argv){
         memset(buff, 0, BUFF_SZ);
     }
 
+    symb_tb_delete(st);
     fclose(fin);
     fclose(fout);
     return 0;
