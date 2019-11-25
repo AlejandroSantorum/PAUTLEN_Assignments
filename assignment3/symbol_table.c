@@ -73,12 +73,17 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
             /* Unable to create a new domain because the limit is already reached */
             return -1;
         }
+        /*************************** D E C I S I O N +++++*********************/
         /* Inserting in global table */
-        hash_tb_insert(symb_tb->global, key, value);
-        /* Inserting in local tables */
-        // for(int j=0; j<=symb_tb->current_local_tb; j++){
-        //     hash_tb_insert(symb_tb->local[j], key, value);
-        // }
+        //hash_tb_insert(symb_tb->global, key, value);
+        /* Inserting in previous local table if any */
+        if(symb_tb->current_local_tb >= 0){
+            hash_tb_insert(symb_tb->local[symb_tb->current_local_tb], key, value);
+        }
+        else{
+            hash_tb_insert(symb_tb->global, key, value);
+        }
+        /**********************************************************************/
         symb_tb->current_local_tb++; /* New domain index */
         /* Creating new local table */
         symb_tb->local[symb_tb->current_local_tb] = hash_tb_create(HASH_TB_SIZE, HASH_TB_CHAIN_SIZE, HT_DYN_RESZ_BOOL);
