@@ -6,12 +6,6 @@
 
 #define MAX_LOCAL_TB 1024
 
-struct _symbol_tb{
-    hash_tb *global;
-    hash_tb *local[MAX_LOCAL_TB];
-    int current_local_tb;
-};
-
 typedef struct _symbol_tb symbol_tb;
 
 symbol_tb * symb_tb_create();

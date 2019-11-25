@@ -12,11 +12,11 @@
 #define CLOSURE_STR "cierre"
 #define CLOSURE_CONST -999
 
-// struct _symbol_tb{
-//     hash_tb *global;
-//     hash_tb *local[MAX_LOCAL_TB];
-//     int current_local_tb;
-// };
+struct _symbol_tb{
+    hash_tb *global;
+    hash_tb *local[MAX_LOCAL_TB];
+    int current_local_tb;
+};
 
 
 symbol_tb * symb_tb_create(){
@@ -57,20 +57,15 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
         return -1;
     }
 
-    //DEBUG
-    printf("=== INSERTING (%s : %d) [current_local_tb %d]\n", key, value, symb_tb->current_local_tb);
-
     /* New domain */
     if(value < 0 && strcmp(CLOSURE_STR, key)){
-        //DEBUG
-        printf("\t== Inserting NEW DOMAIN (%s : %d)\n", key, value);
         if(hash_tb_isKey(symb_tb->global, key) == 1){
-            /* The domain already exists at the global table */
+            /* The variable/domain already exists at the global table */
             return -1;
         }
         for(int i=0; i<=symb_tb->current_local_tb; i++){
             if(hash_tb_isKey(symb_tb->local[i], key) == 1){
-                /* The domain already exists at one of the created local tables */
+                /* The variable/domain already exists at one of the created local tables */
                 return -1;
             }
         }
@@ -81,9 +76,9 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
         /* Inserting in global table */
         hash_tb_insert(symb_tb->global, key, value);
         /* Inserting in local tables */
-        for(int j=0; j<=symb_tb->current_local_tb; j++){
-            hash_tb_insert(symb_tb->local[j], key, value);
-        }
+        // for(int j=0; j<=symb_tb->current_local_tb; j++){
+        //     hash_tb_insert(symb_tb->local[j], key, value);
+        // }
         symb_tb->current_local_tb++; /* New domain index */
         /* Creating new local table */
         symb_tb->local[symb_tb->current_local_tb] = hash_tb_create(HASH_TB_SIZE, HASH_TB_CHAIN_SIZE, HT_DYN_RESZ_BOOL);
@@ -92,8 +87,6 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
     }
     /* Closing domain */
     else if(value == CLOSURE_CONST && !strcmp(CLOSURE_STR, key)){
-        //DEBUG
-        printf("\t== CLOSING domain  (%s : %d)\n", key, value);
         /* Deleting current local table */
         if(symb_tb->local[symb_tb->current_local_tb]){
             hash_tb_delete(symb_tb->local[symb_tb->current_local_tb]);
@@ -103,15 +96,12 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
     }
     /* New element */
     else{
-        //DEBUG
-        printf("\t== Inserting NEW ELEMENT (%s : %d)\n", key, value);
         /* If any local table is initialized */
         if(symb_tb->current_local_tb>=0){
             if(hash_tb_isKey(symb_tb->local[symb_tb->current_local_tb], key) == 1){
                 /* The element already exists at the current local table */
                 return -1;
             }
-            printf("\t\t== Inserting NEW ELEMENT LOCAL (%s : %d)\n", key, value);
             /* Inserting in current local table */
             hash_tb_insert(symb_tb->local[symb_tb->current_local_tb], key, value);
         }
@@ -121,7 +111,6 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
                 /* The element already exists at the global table */
                 return -1;
             }
-            printf("\t\t== Inserting NEW ELEMENT GLOBAL (%s : %d)\n", key, value);
             /* Inserting in global table */
             hash_tb_insert(symb_tb->global, key, value);
         }
