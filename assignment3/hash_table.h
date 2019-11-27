@@ -3,24 +3,6 @@
 
 #include <stdint.h>
 
-typedef struct _ht_item{
-    char *key;
-    int value;
-}ht_item;
-
-typedef struct _ht_arr{
-    ht_item** item_arr;
-    size_t chain_base_sz;
-    size_t curr_sz;
-    size_t insert_idx;
-    size_t dyn_resz;
-} ht_arr;
-
-struct _hash_tb{
-    ht_arr **ht_arr;
-    size_t ht_sz;
-};
-
 typedef struct _hash_tb hash_tb;
 
 
