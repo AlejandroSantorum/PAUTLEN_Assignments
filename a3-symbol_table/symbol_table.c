@@ -59,37 +59,41 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
 
     /* New domain */
     if(value < 0 && strcmp(CLOSURE_STR, key)){
-        if(hash_tb_isKey(symb_tb->global, key) == 1){
-            /* The variable/domain already exists at the global table */
-            return -1;
-        }
-        for(int i=0; i<=symb_tb->current_local_tb; i++){
-            if(hash_tb_isKey(symb_tb->local[i], key) == 1){
-                /* The variable/domain already exists at one of the created local tables */
+        if(symb_tb->current_local_tb>=0){
+            /* Checking if key exists at last local table */
+            if(hash_tb_isKey(symb_tb->local[symb_tb->current_local_tb], key) == 1){
+                /* The variable/domain already exists at last local table */
                 return -1;
             }
         }
+        else{
+            if(hash_tb_isKey(symb_tb->global, key) == 1){
+                /* The variable/domain already exists at the global table */
+                return -1;
+            }
+        }
+        /* Checking if there is space left for another domain */
         if(symb_tb->current_local_tb == MAX_LOCAL_TB-1){
             /* Unable to create a new domain because the limit is already reached */
             return -1;
         }
-        /*************************** D E C I S I O N +++++*********************/
-        /* Inserting in global table */
-        //hash_tb_insert(symb_tb->global, key, value);
-        /* Inserting in previous local table if any */
+
         if(symb_tb->current_local_tb >= 0){
+            /* Inserting in previous local table if any */
             hash_tb_insert(symb_tb->local[symb_tb->current_local_tb], key, value);
         }
         else{
+            /* Inserting in global table */
             hash_tb_insert(symb_tb->global, key, value);
         }
-        /**********************************************************************/
+
         symb_tb->current_local_tb++; /* New domain index */
         /* Creating new local table */
         symb_tb->local[symb_tb->current_local_tb] = hash_tb_create(HASH_TB_SIZE, HASH_TB_CHAIN_SIZE, HT_DYN_RESZ_BOOL);
         /* Inserting in the new local table */
         hash_tb_insert(symb_tb->local[symb_tb->current_local_tb], key, value);
     }
+
     /* Closing domain */
     else if(value == CLOSURE_CONST && !strcmp(CLOSURE_STR, key)){
         /* Deleting current local table */
@@ -99,6 +103,7 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
         symb_tb->local[symb_tb->current_local_tb] = NULL;
         symb_tb->current_local_tb--;
     }
+
     /* New element */
     else{
         /* If any local table is initialized */
