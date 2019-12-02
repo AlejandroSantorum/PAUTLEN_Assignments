@@ -97,11 +97,13 @@ int symb_tb_insert(symbol_tb *symb_tb, char *key, int value){
     /* Closing domain */
     else if(value == CLOSURE_CONST && !strcmp(CLOSURE_STR, key)){
         /* Deleting current local table */
-        if(symb_tb->local[symb_tb->current_local_tb]){
-            hash_tb_delete(symb_tb->local[symb_tb->current_local_tb]);
+        if(symb_tb->current_local_tb >= 0){
+            if(symb_tb->local[symb_tb->current_local_tb]){
+                hash_tb_delete(symb_tb->local[symb_tb->current_local_tb]);
+            }
+            symb_tb->local[symb_tb->current_local_tb] = NULL;
+            symb_tb->current_local_tb--;
         }
-        symb_tb->local[symb_tb->current_local_tb] = NULL;
-        symb_tb->current_local_tb--;
     }
 
     /* New element */
