@@ -2,29 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hash_table.h"
+#include "hash_table_com.h"
 
 #define HASHCODE_LEN 3
 
 
-typedef struct _ht_item{
-    char *key;
-    int value;
-}ht_item;
-
 typedef struct _ht_arr{
-    ht_item** item_arr;
+    Symbol** symb_arr;
     size_t chain_base_sz;
     size_t curr_sz;
     size_t insert_idx;
     size_t dyn_resz;
 } ht_arr;
 
-struct _hash_tb{
+struct _hash_tb_com{
     ht_arr **ht_arr;
     size_t ht_sz;
 };
-
 
 
 int _hash_code(char *key, size_t size){
@@ -50,34 +44,40 @@ int _hash_code(char *key, size_t size){
 }
 
 
-ht_item * _ht_item_create(){
-    ht_item *item=NULL;
+Symbol * _symbol_copy(Symbol *src){
+    Symbol *symb=NULL;
 
-    item = (ht_item *) calloc(1, sizeof(ht_item));
-    if(!item){
-        perror("Unable to allocate memory for ht_item\n");
+    symb = (Symbol *) calloc(1, sizeof(Symbol));
+    if(!symb){
+        perror("Unable to allocate memory for symbol\n");
         return NULL;
     }
-    item->key = NULL;
-    return item;
+
+    symb->id = (char *) calloc(strlen(src->id)+1, sizeof(char));
+    if(!symb->id){
+        perror("Unable to allocate memory for symbol id\n");
+        return NULL;
+    }
+
+    strcpy(symb->id, src->id);
+
+    symb->symb_cat = src->symb_cat;
+    symb->symb_type = src->symb_type;
+    symb->var_cat = src->var_cat;
+    symb->value = src->value;
+    symb->len = src->len;
+    symb->num_param = src->num_param;
+    symb->pos = src->pos;
+    symb->num_local_var = src->num_local_var;
+
+    return symb;
 }
 
-void _ht_item_delete(ht_item *hitem){
-    if(hitem){
-        if(hitem->key){
-            free(hitem->key);
-        }
-        free(hitem);
+void _symbol_delete(Symbol *symb){
+    if (symb){
+        if (symb->id) free(symb->id);
+        free(symb);
     }
-}
-
-int _ht_item_print(ht_item *hitem){
-    if(hitem){
-        if(hitem->key){
-            return printf("(%s:%d)", hitem->key, hitem->value);
-        }
-    }
-    return 0;
 }
 
 ht_arr * _ht_arr_create(size_t chain_base_sz, size_t dyn_resz){
@@ -94,9 +94,9 @@ ht_arr * _ht_arr_create(size_t chain_base_sz, size_t dyn_resz){
     harr->insert_idx = 0;
     harr->dyn_resz = dyn_resz;
 
-    harr->item_arr = (ht_item **) calloc(chain_base_sz, sizeof(ht_item *));
-    if(!(harr->item_arr)){
-        perror("Unable to allocate memory for ht_item array in a ht_arr object");
+    harr->symb_arr = (Symbol **) calloc(chain_base_sz, sizeof(Symbol *));
+    if(!(harr->symb_arr)){
+        perror("Unable to allocate memory for symbol array in a ht_arr object");
         return NULL;
     }
 
@@ -105,41 +105,28 @@ ht_arr * _ht_arr_create(size_t chain_base_sz, size_t dyn_resz){
 
 void _ht_arr_delete(ht_arr *harr){
     if(harr){
-        if(harr->item_arr){
+        if(harr->symb_arr){
             for(int i=0; i<harr->insert_idx; i++){
-                if(harr->item_arr[i]){
-                    _ht_item_delete(harr->item_arr[i]);
+                if(harr->symb_arr[i]){
+                    _symbol_delete(harr->symb_arr[i]);
                 }
             }
-            free(harr->item_arr);
+            free(harr->symb_arr);
         }
         free(harr);
     }
 }
 
-int _ht_arr_print(ht_arr *harr, int i){
-    int chars=0;
-    if(harr){
-        if(harr->item_arr){
-            printf("[%d] => ", i);
-            for(int i=0; i<(harr->insert_idx); i++){
-                chars += _ht_item_print(harr->item_arr[i]);
-                printf(" ");
-            }
-        }
-    }
-    return chars;
-}
 
-hash_tb * hash_tb_create(size_t ht_sz, size_t chain_sz, size_t dyn_resz){
-    hash_tb *ht=NULL;
+hash_tb_com * hash_tb_com_create(size_t ht_sz, size_t chain_sz, size_t dyn_resz){
+    hash_tb_com *ht=NULL;
 
     if(ht_sz <= 0 || chain_sz <= 0){
         perror("Hash table size too low");
         return NULL;
     }
 
-    ht = (hash_tb *) calloc(1, sizeof(hash_tb));
+    ht = (hash_tb_com *) calloc(1, sizeof(hash_tb_com));
     if(!ht){
         perror("Unable to allocate memory for hash table");
         return NULL;
@@ -163,7 +150,7 @@ hash_tb * hash_tb_create(size_t ht_sz, size_t chain_sz, size_t dyn_resz){
     return ht;
 }
 
-void hash_tb_delete(hash_tb *ht){
+void hash_tb_com_delete(hash_tb_com *ht){
     if(ht){
         if(ht->ht_arr){
             for(int i=0; i<ht->ht_sz; i++){
@@ -175,45 +162,29 @@ void hash_tb_delete(hash_tb *ht){
     }
 }
 
-int hash_tb_print(hash_tb *ht){
-    int chars=0;
-    if(ht){
-        if(ht->ht_arr){
-            for(int i=0; i<(ht->ht_sz); i++){
-                chars += _ht_arr_print(ht->ht_arr[i], i);
-                printf("\n");
-            }
-        }
-    }
-    return chars;
-}
 
-
-int _ht_arr_insert(ht_arr *harr, char *key, int value){
+int _ht_arr_insert(ht_arr *harr, Symbol *symb){
     if(!harr){
         perror("hash table array NULL pointer when inserting");
         return -1;
     }
-
+    /* Checking if there is space left */
     if((harr->insert_idx == harr->curr_sz) && !(harr->dyn_resz)){
         return -1;
     }
 
-    if(!(harr->item_arr[harr->insert_idx] = _ht_item_create())){
-        perror("Unable to allocate memory for a new ht_item when inserting");
+    /* Copying symbol and inserting it */
+    if(!(harr->symb_arr[harr->insert_idx] = _symbol_copy(symb))){
+        perror("Unable to allocate memory for a new symbol when inserting");
         return -1;
     }
 
-    harr->item_arr[harr->insert_idx]->key = (char *) calloc(strlen(key)+1, sizeof(char));
-    strcpy(harr->item_arr[harr->insert_idx]->key, key);
-
-    harr->item_arr[harr->insert_idx]->value = value;
-
+    /* Replacing inserting index and reallocing if necessary */
     harr->insert_idx++;
     if((harr->insert_idx == harr->curr_sz) && harr->dyn_resz){
         harr->curr_sz *= 2;
-        harr->item_arr = realloc(harr->item_arr, harr->curr_sz * sizeof(ht_item*));
-        if(!harr->item_arr){
+        harr->symb_arr = realloc(harr->symb_arr, harr->curr_sz * sizeof(Symbol*));
+        if(!harr->symb_arr){
             perror("Unable to Reallocate memory for a new ht_arr when inserting");
             return -1;
         }
@@ -221,26 +192,26 @@ int _ht_arr_insert(ht_arr *harr, char *key, int value){
     return 0;
 }
 
-int hash_tb_insert(hash_tb *ht, char *key, int value){
+int hash_tb_com_insert(hash_tb_com *ht, Symbol *symb){
     int hashcode;
 
     if(!ht){
         perror("Hash table NULL pointer when inserting");
         return -1;
     }
-    if(!key){
-        perror("key NULL pointer when inserting");
+    if(!symb){
+        perror("Symbol NULL pointer when inserting");
         return -1;
     }
 
-    hashcode = _hash_code(key, ht->ht_sz);
+    hashcode = _hash_code(symb->id, ht->ht_sz);
     if(hashcode < 0){
         perror("hashcode invalid value when inserting");
         return -1;
     }
 
-    if(_ht_arr_insert(ht->ht_arr[hashcode], key, value)){
-        printf("Unable to insert (%s - %d) into the hash table with hashcode %d\n", key, value, hashcode);
+    if(_ht_arr_insert(ht->ht_arr[hashcode], symb)){
+        printf("Unable to insert symbol with id = %s into the hash table with hashcode %d\n", symb->id, hashcode);
         return -1;
     }
 
@@ -255,12 +226,12 @@ int _ht_arr_isKey(ht_arr *harr, char *key){
     }
 
     for(int i=0; i<(harr->insert_idx); i++){
-        if(!strcmp(harr->item_arr[i]->key, key)) return 1;
+        if(!strcmp(harr->symb_arr[i]->id, key)) return 1;
     }
     return 0;
 }
 
-int hash_tb_isKey(hash_tb *ht, char *key){
+int hash_tb_com_isKey(hash_tb_com *ht, char *key){
     int hashcode;
 
     if(!ht){
@@ -283,22 +254,22 @@ int hash_tb_isKey(hash_tb *ht, char *key){
 }
 
 
-int _ht_arr_get(ht_arr *harr, char *key, int *value){
+int _ht_arr_get(ht_arr *harr, char *key, Symbol **symb){
     if(!harr){
         perror("hash table array NULL pointer when getting the key");
         return -1;
     }
 
     for(int i=0; i<(harr->insert_idx); i++){
-        if(!strcmp(harr->item_arr[i]->key, key)){
-            *value = harr->item_arr[i]->value;
+        if(!strcmp(harr->symb_arr[i]->id, key)){
+            *symb = _symbol_copy(harr->symb_arr[i]);
             return 1;
         }
     }
     return 0;
 }
 
-int hash_tb_get(hash_tb *ht, char *key, int *value){
+int hash_tb_com_get(hash_tb_com *ht, char *key, Symbol **symb){
     int hashcode;
 
     if(!ht){
@@ -316,5 +287,20 @@ int hash_tb_get(hash_tb *ht, char *key, int *value){
         return -1;
     }
 
-    return _ht_arr_get(ht->ht_arr[hashcode], key, value);
+    return _ht_arr_get(ht->ht_arr[hashcode], key, symb);
+}
+
+
+int hash_tb_com_print(hash_tb_com *ht){
+    int ret = 0;
+
+    for(int i=0; i<(ht->ht_sz); i++){
+        ret += printf("[%d]:\n\t", i);
+        for(int j=0; j<(ht->ht_arr[i]->insert_idx); j++){
+            ret += printf("(%s) ", ht->ht_arr[i]->symb_arr[j]->id);
+        }
+        ret += printf("\n");
+    }
+
+    return ret;
 }
