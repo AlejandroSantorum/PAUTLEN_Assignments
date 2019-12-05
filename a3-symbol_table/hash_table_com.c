@@ -254,40 +254,39 @@ int hash_tb_com_isKey(hash_tb_com *ht, char *key){
 }
 
 
-int _ht_arr_get(ht_arr *harr, char *key, Symbol **symb){
+Symbol * _ht_arr_get(ht_arr *harr, char *key){
     if(!harr){
         perror("hash table array NULL pointer when getting the key");
-        return -1;
+        return NULL;
     }
 
     for(int i=0; i<(harr->insert_idx); i++){
         if(!strcmp(harr->symb_arr[i]->id, key)){
-            *symb = _symbol_copy(harr->symb_arr[i]);
-            return 1;
+            return _symbol_copy(harr->symb_arr[i]);
         }
     }
-    return 0;
+    return NULL;
 }
 
-int hash_tb_com_get(hash_tb_com *ht, char *key, Symbol **symb){
+Symbol * hash_tb_com_get(hash_tb_com *ht, char *key){
     int hashcode;
 
     if(!ht){
         perror("Hash table NULL pointer when getting key");
-        return -1;
+        return NULL;
     }
     if(!key){
         perror("key NULL pointer when getting key");
-        return -1;
+        return NULL;
     }
 
     hashcode = _hash_code(key, ht->ht_sz);
     if(hashcode < 0){
         perror("hashcode invalid value when getting key");
-        return -1;
+        return NULL;
     }
 
-    return _ht_arr_get(ht->ht_arr[hashcode], key, symb);
+    return _ht_arr_get(ht->ht_arr[hashcode], key);
 }
 
 

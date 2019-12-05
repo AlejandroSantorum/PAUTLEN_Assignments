@@ -52,10 +52,11 @@ int main(){
 
     Symbol *val;
     printf("···> Getting value of introduced key...\n");
-    ret = hash_tb_com_get(ht, SYMB_ID, &val);
-    if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
-    else if(ret == 0) printf("Key is NOT in the hash table [WRONG outcome]\n");
-    else if(ret == 1) printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+    val = hash_tb_com_get(ht, SYMB_ID);
+    if(!val) printf("Key NOT found in the hash table [WRONG OUTCOME]\n");
+    else printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+    if(val->id) free(val->id);
+    if(val) free(val);
 
     printf("···> Checking presence of non-introduced key...\n");
     ret = hash_tb_com_isKey(ht, "Francesco Virgolini 2");
@@ -64,10 +65,13 @@ int main(){
     else if(ret == 1) printf("Key IS IN the hash table [WRONG outcome]\n");
 
     printf("···> Getting value of non-introduced key...\n");
-    ret = hash_tb_com_get(ht, "Francesco Virgolini 2", &val);
-    if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
-    else if(ret == 0) printf("Key is NOT in the hash table [GOOD outcome]\n");
-    else if(ret == 1) printf("Key IS IN the hash table [WRONG outcome] and the value is %d\n", val->value);
+    val = hash_tb_com_get(ht, "Francesco Virgolini 2");
+    if(!val) printf("Key is NOT in the hash table [GOOD outcome]\n");
+    else {
+        printf("Key IS IN the hash table [WRONG outcome] and the value is %d\n", val->value);
+        free(val->id);
+        free(val);
+    }
 
     printf("\n···> Deleting Hash table...\n");
     hash_tb_com_delete(ht);
@@ -85,7 +89,8 @@ int main(){
     printf("···> Created!\n\n");
 
     printf("···> Inserting element 1...\n");
-    strcpy(symb->id, "IDENTIFIER_1");
+    if(symb->id) free(symb->id);
+    symb->id = strdup("IDENTIFIER_1");
     symb->value = 1;
     if(hash_tb_com_insert(ht, symb)){
       perror("Unable to insert into the hash table");
@@ -94,7 +99,8 @@ int main(){
     printf("···> Inserted!\n\n");
 
     printf("···> Inserting element 2... (now it reallocs)\n");
-    strcpy(symb->id, "IDENTIFIER_2");
+    if(symb->id) free(symb->id);
+    symb->id = strdup("IDENTIFIER_2");
     symb->value = 2;
     if(hash_tb_com_insert(ht, symb)){
       perror("Unable to insert into the hash table");
@@ -103,7 +109,8 @@ int main(){
     printf("···> Inserted!\n\n");
 
     printf("···> Inserting element 3... (now it is inserted in realloced position)\n");
-    strcpy(symb->id, "IDENTIFIER_3");
+    if(symb->id) free(symb->id);
+    symb->id = strdup("IDENTIFIER_3");
     symb->value = 3;
     if(hash_tb_com_insert(ht, symb)){
       perror("Unable to insert into the hash table");
@@ -112,7 +119,8 @@ int main(){
     printf("···> Inserted!\n\n");
 
     printf("···> Inserting element 4... (now it is inserted in realloced position) [reallocing again]\n");
-    strcpy(symb->id, "IDENTIFIER_4");
+    if(symb->id) free(symb->id);
+    symb->id = strdup("IDENTIFIER_4");
     symb->value = 4;
     if(hash_tb_com_insert(ht, symb)){
       perror("Unable to insert into the hash table");
@@ -121,7 +129,8 @@ int main(){
     printf("···> Inserted!\n\n");
 
     printf("···> Inserting element 5... (now it is inserted in realloced position x2)\n");
-    strcpy(symb->id, "IDENTIFIER_5");
+    if(symb->id) free(symb->id);
+    symb->id = strdup("IDENTIFIER_5");
     symb->value = 5;
     if(hash_tb_com_insert(ht, symb)){
       perror("Unable to insert into the hash table");
@@ -130,36 +139,52 @@ int main(){
     printf("···> Inserted!\n\n");
 
     printf("···> Getting value of first introduced key...\n");
-    ret = hash_tb_com_get(ht, "IDENTIFIER_1", &val);
-    if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
-    else if(ret == 0) printf("Key is NOT in the hash table [WRONG outcome]\n");
-    else if(ret == 1) printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+    val = hash_tb_com_get(ht, "IDENTIFIER_1");
+    if(!val) printf("Key is NOT in the hash table [WRONG outcome]\n");
+    else{
+        printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+        if(val->id) free(val->id);
+        free(val);
+    }
 
     printf("···> Getting value of third introduced key (realloced one)...\n");
-    ret = hash_tb_com_get(ht, "IDENTIFIER_3", &val);
-    if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
-    else if(ret == 0) printf("Key is NOT in the hash table [WRONG outcome]\n");
-    else if(ret == 1) printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+    val = hash_tb_com_get(ht, "IDENTIFIER_3");
+    if(!val) printf("Key is NOT in the hash table [WRONG outcome]\n");
+    else{
+        printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+        if(val->id) free(val->id);
+        free(val);
+    }
 
     printf("···> Getting value of 4th introduced key (realloced one)...\n");
-    ret = hash_tb_com_get(ht, "IDENTIFIER_4", &val);
-    if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
-    else if(ret == 0) printf("Key is NOT in the hash table [WRONG outcome]\n");
-    else if(ret == 1) printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+    val = hash_tb_com_get(ht, "IDENTIFIER_4");
+    if(!val) printf("Key is NOT in the hash table [WRONG outcome]\n");
+    else{
+        printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+        if(val->id) free(val->id);
+        free(val);
+    }
 
     printf("···> Getting value of 5th introduced key (realloced one x2)...\n");
-    ret = hash_tb_com_get(ht, "IDENTIFIER_5", &val);
-    if(ret == -1) printf("Error when getting key value[WRONG outcome]\n");
-    else if(ret == 0) printf("Key is NOT in the hash table [WRONG outcome]\n");
-    else if(ret == 1) printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+    val = hash_tb_com_get(ht, "IDENTIFIER_5");
+    if(!val) printf("Key is NOT in the hash table [WRONG outcome]\n");
+    else{
+        printf("Key IS IN the hash table [GOOD outcome] and the value is %d\n", val->value);
+        if(val->id) free(val->id);
+        free(val);
+    }
 
     printf("···> Printing hash table...\n");
     hash_tb_com_print(ht);
     printf("···> Printed!\n\n");
 
+
     printf("\n···> Deleting Hash table...\n");
     hash_tb_com_delete(ht);
     printf("···> Deleted!\n\n");
+
+    if(symb->id) free(symb->id);
+    if(symb) free(symb);
 
   return 0;
 }

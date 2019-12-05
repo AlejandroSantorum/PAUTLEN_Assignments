@@ -36,7 +36,7 @@ int hash_tb_com_insert(hash_tb_com *ht, Symbol *symb);
 
 int hash_tb_com_isKey(hash_tb_com *ht, char *key);
 
-int hash_tb_com_get(hash_tb_com *ht, char *key, Symbol **symb);
+Symbol * hash_tb_com_get(hash_tb_com *ht, char *key);
 
 int hash_tb_com_print(hash_tb_com *ht);
 
