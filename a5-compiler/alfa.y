@@ -2,18 +2,21 @@
 #include <stdio.h>
 
 #include "generacion.h"
+#include "symbol_table_com.h"
 
 extern int yylex(void);
 extern FILE* yyout;
 void yyerror(const char * s);
 
+symbol_tb *symb_tb=NULL;
+
 %}
 
 %union
- {
+{
  char* cadena;
  int numero;
- }
+}
 
 /* Palabras reservadas */
 
@@ -65,8 +68,16 @@ void yyerror(const char * s);
 %%
 
 programa:
-    TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones funciones sentencias TOK_LLAVEDERECHA { fprintf(yyout, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> }\n");}
+    init_symbol_tb TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones funciones write_main sentencias TOK_LLAVEDERECHA { fprintf(yyout, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> }\n");}
 ;
+
+inti_symbol_tb:{
+    symb_tb = symb_tb_create();
+}
+
+write_main:{
+    escribir_inicio_main(yyout);
+}
 
 declaraciones:
     declaracion { fprintf(yyout, ";R2:\t<declaraciones> ::= <declaracion>\n"); }

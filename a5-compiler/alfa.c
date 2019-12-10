@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 #include "generacion.h"
-#include "symbol_table_com.h"
 
 extern int yyparse(void);
 extern FILE *yyin;
@@ -18,7 +17,7 @@ extern FILE* yyout;
 
 int main(int argc, char const *argv[]) {
     if(argc < 3){
-        printf("Faltan parametros de entrada: ./pruebaSintactico <fichero-entrada> <fichero-salida>\n");
+        printf("Faltan parametros de entrada: ./alfa <fichero-entrada> <fichero-salida>\n");
         return ERROR;
     }
 
@@ -34,7 +33,12 @@ int main(int argc, char const *argv[]) {
       return ERROR;
     }
 
+    escribir_subseccion_data(yyout);
+    escribir_cabecera_bss(yyout);
+
     yyparse();
+
+    escribir_fin(yyout);
 
     fclose(yyout);
     fclose(yyin);
