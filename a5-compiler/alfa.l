@@ -1,4 +1,5 @@
 %{
+#include "alfa.h"
 #include "y.tab.h"
 size_t ncols=1;
 size_t nlines=1;
@@ -49,8 +50,27 @@ return { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_RETURN
 ">" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MAYOR; }
 true { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_TRUE; }
 false { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_FALSE; }
-[0-9]+ { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_CONSTANTE_ENTERA; }
-[a-zA-Z]([0-9]|[a-zA-Z]){0,99} { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_IDENTIFICADOR; }
-[a-zA-Z]([0-9]|[a-zA-Z]){100,} { printf("****Error en [lin %lu, col %lu]: identificador demasiado largo (%s)\n", nlines, ncols, yytext); is_morpho=1; return -1; }
+
+[0-9]+ {
+    ncols += yyleng;
+    yylval.attributes.int_value = atoi(yytext);
+    fprintf(yyout, ";D:\t%s\n", yytext);
+    return TOK_CONSTANTE_ENTERA;
+}
+
+[a-zA-Z]([0-9]|[a-zA-Z]){0,99} {
+    ncols += yyleng;
+    strcpy(yylval.attributes.name, yytext);
+    fprintf(yyout, ";D:\t%s\n", yytext);
+    return TOK_IDENTIFICADOR;
+}
+
+[a-zA-Z]([0-9]|[a-zA-Z]){100,} {
+    printf("****Error en [lin %lu, col %lu]: identificador demasiado largo (%s)\n", nlines, ncols, yytext);
+    is_morpho=1;
+    return -1;
+}
+
 . {printf("****Error en [lin %lu, col %lu]: simbolo no permitido (%s)\n", nlines, ncols, yytext);  ncols++; is_morpho=1; return -2; }
+
 %%

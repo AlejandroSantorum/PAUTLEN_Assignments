@@ -2,21 +2,21 @@
 #define SYMBOL_TABLE_H
 
 #include <stdint.h>
-#include "hash_table.h"
+#include "hash_table_com.h"
 
 #define MAX_LOCAL_TB 1024
 
-typedef struct _symbol_tb symbol_tb;
+typedef struct _symbol_tb_com symbol_tb_com;
 
-symbol_tb * symb_tb_create();
+symbol_tb_com * symb_tb_com_create();
 
-void symb_tb_delete(symbol_tb *symb_tb);
+void symb_tb_com_delete(symbol_tb_com *symb_tb);
 
-int symb_tb_insert(symbol_tb *symb_tb, char *key, int value);
+int symb_tb_com_insert(symbol_tb_com *symb_tb, Symbol *symb);
 
-int symb_tb_isKey(symbol_tb *symb_tb, char *key);
+int symb_tb_com_isKey(symbol_tb_com *symb_tb, char *key);
 
-int symb_tb_search(symbol_tb *symb_tb, char *key, int *value);
+Symbol * symb_tb_com_search(symbol_tb_com *symb_tb, char *key);
 
 
 #endif /* SYMBOL_TABLE_H */

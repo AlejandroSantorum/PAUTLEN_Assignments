@@ -14,8 +14,7 @@ symbol_tb *symb_tb=NULL;
 
 %union
 {
- char* cadena;
- int numero;
+    attr_type attributes;
 }
 
 /* Palabras reservadas */
@@ -56,8 +55,8 @@ symbol_tb *symb_tb=NULL;
 %token TOK_TRUE
 %token TOK_FALSE
 
-%token <numero> TOK_CONSTANTE_ENTERA
-%token <cadena> TOK_IDENTIFICADOR
+%token <attributes> TOK_CONSTANTE_ENTERA
+%token <attributes> TOK_IDENTIFICADOR
 
 %left TOK_IGUAL TOK_MENORIGUAL TOK_MENOR TOK_MAYORIGUAL TOK_MAYOR TOK_DISTINTO
 %left TOK_AND TOK_OR
