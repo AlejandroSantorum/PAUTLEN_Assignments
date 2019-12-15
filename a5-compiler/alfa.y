@@ -87,6 +87,7 @@ init_sbtb_data:{
 
     escribir_subseccion_data(yyout);
     escribir_cabecera_bss(yyout);
+    /* TODO : escribir_segmento_codigo(.) ???? */
 }
 
 init_main:{
@@ -104,7 +105,7 @@ declaracion:
 
 clase:
     clase_escalar {
-        clase_actual = ESCALAR;
+        clase_actual = SCALAR;
         fprintf(yyout, ";R5:\t<clase> ::= <clase_escalar>\n");
      }
 |   clase_vector {
@@ -119,7 +120,7 @@ clase_escalar:
 
 tipo:
     TOK_INT {
-        tipo_actual = INT;
+        tipo_actual = INTEGER;
         fprintf(yyout, ";R10:\t<tipo> ::= int\n");
     }
 |   TOK_BOOLEAN {
@@ -188,7 +189,32 @@ bloque:
 ;
 
 asignacion:
-    TOK_IDENTIFICADOR TOK_ASIGNACION exp { fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n"); }
+    TOK_IDENTIFICADOR TOK_ASIGNACION exp {
+        int is_local = -1;
+        Symbol *symb=NULL;
+        symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        if(!symb){
+            /* TODO : Error -> variable no declarada */
+            return -1;
+        }
+        if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR || symb->symb_type != $3.type){
+            /* TODO : Error -> asignacion incompatible */
+            return -1;
+        }
+
+        if(is_local){ /* Local variable */
+            if(symb->symb_cat == PARAMETER){
+                /* TODO : GENERACION */
+            }
+            else{
+                /* TODO : GENERACION */
+            }
+        }
+        else{
+            /* TODO : GENERACION */
+            fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
+        }
+    }
 |   elemento_vector TOK_ASIGNACION exp { fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n"); }
 ;
 
@@ -210,7 +236,10 @@ lectura:
 ;
 
 escritura:
-    TOK_PRINTF exp { fprintf(yyout, ";R56:\t<escritura> ::= printf <exp>\n"); }
+    TOK_PRINTF exp {
+        escribir(yyout, !($2.is_address), $2.type);
+        fprintf(yyout, ";R56:\t<escritura> ::= printf <exp>\n");
+    }
 ;
 
 retorno_funcion:
@@ -226,8 +255,31 @@ exp:
 |   exp TOK_AND exp { fprintf(yyout, ";R77:\t<exp> ::= <exp> && <exp>\n"); }
 |   exp TOK_OR exp { fprintf(yyout, ";R78:\t<exp> ::= <exp> || <exp>\n"); }
 |   TOK_NOT exp { fprintf(yyout, ";R79:\t<exp> ::= !<exp>\n"); }
-|   TOK_IDENTIFICADOR { fprintf(yyout, ";R80:\t<exp> ::= <identificador>\n"); }
-|   constante { fprintf(yyout, ";R81:\t<exp> ::= <constante>\n"); }
+|   TOK_IDENTIFICADOR {
+        int is_local = -1;
+        Symbol *symb=NULL;
+        symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        if(!symb){
+            /* TODO : Error -> variable no declarada */
+            return -1;
+        }
+        if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR){
+            /* TODO : Error -> asignacion incompatible */
+            return -1;
+        }
+
+        $$.type = symb->symb_type;
+        $$.es_direccion = 1;
+
+        /* TODO : Escritura en ensamblador de la introduccion en la pila de la dirección del identificador: push dword  _$1.lexema */
+
+        fprintf(yyout, ";R80:\t<exp> ::= <identificador>\n");
+    }
+|   constante {
+        $$.type = $1.type;
+        $$.is_address = $1.is_address;
+        fprintf(yyout, ";R81:\t<exp> ::= <constante>\n");
+    }
 |   TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO { fprintf(yyout, ";R82:\t<exp> ::= (<exp>)\n"); }
 |   TOK_PARENTESISIZQUIERDO comparacion TOK_PARENTESISDERECHO { fprintf(yyout, ";R83:\t<exp> ::= (<comparacion>)\n"); }
 |   elemento_vector { fprintf(yyout, ";R85:\t<exp> ::= <elemento_vector>\n"); }
@@ -254,7 +306,11 @@ comparacion:
 ;
 
 constante:
-    constante_entera { fprintf(yyout, ";R99:\t<constante> ::= <constante_entera>\n"); }
+    constante_entera {
+        $$.type = $1.type;
+        $$.is_address = $1.is_address;
+        fprintf(yyout, ";R99:\t<constante> ::= <constante_entera>\n");
+    }
 |   constante_logica { fprintf(yyout, ";R100:\t<constante> ::= <constante_logica>\n"); }
 ;
 
@@ -263,41 +319,50 @@ constante_logica:
 |   TOK_FALSE { fprintf(yyout, ";R103:\t<constante_logica> ::= false\n"); }
 ;
 
-constante_entera: TOK_CONSTANTE_ENTERA { fprintf(yyout, ";R104:\t<constante_entera> ::= TOK_CONSTANTE_ENTERA\n"); }
+constante_entera: TOK_CONSTANTE_ENTERA {
+    $$.type = INTEGER;
+    $$.is_address = 0;
+    $$.int_value = $1.int_value;
+    fprintf(yyout, ";R104:\t<constante_entera> ::= TOK_CONSTANTE_ENTERA\n");
+    /* TODO : Meter en la pila la constante -> ¿ operandoEnPilaAArgumento(yyout, $$.is_address) ? */
+}
 ;
 
 identificador: TOK_IDENTIFICADOR {
-    if(symb_tb_com_isKey(symb_tb, $1.lexeme)){
-        /* TODO : TRATAR ERROR DE QUE YA EXISTE */
+    int is_local = -1; /* To check if the ID is local or global */
+    Symbol *symb=NULL;
+    symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if((symb && symb->symb_cat == FUNCTION) || (symb && is_local)) {
+        /* TODO: Error, declaracion duplciada */
+        return -1; /* constant ERROR ? */
+    }
+    /* Creating symbol */
+    symb = (Symbol *) calloc(1, sizeof(Symbol));
+    /* TODO : Error check ? */
+    symb->id = (char *) calloc(sizeof($1.lexeme)+1, sizeof(char));
+
+    strcpy(symb->id, $1.lexeme);
+    symb->symb_cat = VARIABLE;
+    symb->symb_type = tipo_actual;
+    symb->var_cat = clase_actual;
+
+    if(clase_actual == VECTOR) {
+        symb->len = /* TODO : Donde esta el tamanio del vector ? */;
     }
     else {
-        /* Creating symbol */
-        symb = (Symbol *) calloc(1, sizeof(Symbol));
-        /* TODO : Error check ? */
-        symb->id = (char *) calloc(sizeof($1.lexeme)+1, sizeof(char));
-
-        strcpy(symb->id, $1.lexeme);
-        symb->symb_cat = VARIABLE;
-        symb->symb_type = tipo_actual;
-        symb->var_cat = clase_actual;
-
-        if(clase_actual == VECTOR) {
-            symb->len = /* TODO : Donde esta el tamanio del vector ? */;
-        }
-        else {
-            symb->len = 1;
-        }
-
-        /* TODO : Comprobar si es funcion */
-        /* TODO :
-        symb->value = 0;
-        symb->len = 0;
-        symb->num_param = 0;
-        symb->pos = 0;
-        symb->num_local_var = 0;
-        */
-        symb_tb_com_insert(symb_tb, symb);
+        symb->len = 1;
     }
+
+    /* TODO : Comprobar si es funcion */
+    /* TODO :
+    symb->value = 0;
+    symb->len = 0;
+    symb->num_param = 0;
+    symb->pos = 0;
+    symb->num_local_var = 0;
+    */
+    symb_tb_com_insert(symb_tb, symb);
+
     fprintf(yyout, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
 }
 ;

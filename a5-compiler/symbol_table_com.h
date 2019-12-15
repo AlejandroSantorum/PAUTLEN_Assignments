@@ -16,7 +16,7 @@ int symb_tb_com_insert(symbol_tb_com *symb_tb, Symbol *symb);
 
 int symb_tb_com_isKey(symbol_tb_com *symb_tb, char *key);
 
-Symbol * symb_tb_com_search(symbol_tb_com *symb_tb, char *key);
+Symbol * symb_tb_com_search(symbol_tb_com *symb_tb, char *key, int *is_local);
 
 
 #endif /* SYMBOL_TABLE_H */
