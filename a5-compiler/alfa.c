@@ -33,9 +33,6 @@ int main(int argc, char const *argv[]) {
       return ERROR;
     }
 
-    escribir_subseccion_data(yyout);
-    escribir_cabecera_bss(yyout);
-
     yyparse();
 
     escribir_fin(yyout);

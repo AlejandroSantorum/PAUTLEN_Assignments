@@ -1,10 +1,15 @@
 %{
+
 #include "alfa.h"
 #include "y.tab.h"
+
 size_t ncols=1;
 size_t nlines=1;
 int is_morpho;
+
 %}
+
+
 %option noinput
 %option nounput
 %option noyywrap
@@ -60,7 +65,7 @@ false { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_FALSE; 
 
 [a-zA-Z]([0-9]|[a-zA-Z]){0,99} {
     ncols += yyleng;
-    strcpy(yylval.attributes.name, yytext);
+    strcpy(yylval.attributes.lexeme, yytext);
     fprintf(yyout, ";D:\t%s\n", yytext);
     return TOK_IDENTIFICADOR;
 }
