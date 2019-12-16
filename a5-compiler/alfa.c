@@ -35,8 +35,6 @@ int main(int argc, char const *argv[]) {
 
     yyparse();
 
-    escribir_fin(yyout);
-
     fclose(yyout);
     fclose(yyin);
     return 0;

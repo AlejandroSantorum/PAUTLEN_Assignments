@@ -40,5 +40,10 @@ Symbol * hash_tb_com_get(hash_tb_com *ht, char *key);
 
 int hash_tb_com_print(hash_tb_com *ht);
 
+int hash_tb_com_n_elem (hash_tb_com *ht);
+
+void hash_tb_com_dump(hash_tb_com *ht, Symbol **list);
+
+void _symbol_delete(Symbol *symb);
 
 #endif /* HASH_TABLE_COM_H */

@@ -180,6 +180,22 @@ Symbol * symb_tb_com_search(symbol_tb_com *symb_tb, char *key, int *is_local){
         }
     }
     /* If local search fails, we must search in global table */
-    *is_local = 0
+    *is_local = 0;
     return hash_tb_com_get(symb_tb->global, key);
+}
+
+Symbol ** symb_tb_com_get_list(symbol_tb_com *symb_tb, int *size, int scope){
+    Symbol ** list;
+    int count;
+    if (scope == GLOBAL){
+        count = hash_tb_com_n_elem(symb_tb->global);
+        list = calloc(count, sizeof(Symbol *));
+        hash_tb_com_dump(symb_tb->global, list);
+    } else {
+        count = hash_tb_com_n_elem(symb_tb->local[symb_tb->current_local_tb]);
+        list = calloc(count, sizeof(Symbol *));
+        hash_tb_com_dump(symb_tb->local[symb_tb->current_local_tb], list);
+    }
+    *size = count;
+    return list;
 }

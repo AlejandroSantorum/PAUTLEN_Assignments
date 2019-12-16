@@ -9,10 +9,10 @@
 #define MAX_VECTOR_SIZE 64
 
 /* TODO: Conflict with hash_table_com.h ????? */
-// #define ESCALAR 1
-// #define VECTOR 3
-// #define INT 1
-// #define BOOLEAN 3
+#define SCALAR 1
+#define VECTOR 3
+#define INT 1
+#define BOOLEAN 3
 
 typedef struct _attr_type {
     char lexeme[MAX_LONG_ID+1];

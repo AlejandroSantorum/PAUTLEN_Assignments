@@ -179,7 +179,7 @@ int _ht_arr_insert(ht_arr *harr, Symbol *symb){
         return -1;
     }
 
-    /* Replacing inserting index and reallocing if necessary */
+    /* Replacing inserting index and realloc'ing if necessary */
     harr->insert_idx++;
     if((harr->insert_idx == harr->curr_sz) && harr->dyn_resz){
         harr->curr_sz *= 2;
@@ -302,4 +302,22 @@ int hash_tb_com_print(hash_tb_com *ht){
     }
 
     return ret;
+}
+
+
+int hash_tb_com_n_elem (hash_tb_com *ht){
+    int total = 0;
+    for(int i=0; i<(ht->ht_sz); i++){
+        total += ht->ht_arr[i]->insert_idx;
+    }
+    return total;
+}
+
+void hash_tb_com_dump(hash_tb_com *ht, Symbol **list){
+    int count = 0;
+    for(int i=0; i<(ht->ht_sz); i++){
+        for(int j=0; j<(ht->ht_arr[i]->insert_idx); j++, count++){
+            list[count] = _symbol_copy(ht->ht_arr[i]->symb_arr[j]);
+        }
+    }
 }
