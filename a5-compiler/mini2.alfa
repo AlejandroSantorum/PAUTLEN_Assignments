@@ -1,8 +1,7 @@
 main {
-    int x, y;
-
-    x = 8;
-   	printf x;
-    scanf y;
-    printf y;
+    boolean x1, x2;
+    x1 = true;
+    x2 = false;
+    printf x1;
+    printf x2;
 }

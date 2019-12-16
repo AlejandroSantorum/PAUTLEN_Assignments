@@ -85,18 +85,18 @@ symbol_tb_com *symb_tb=NULL;
 programa:
     init_sbtb TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones init_assembly funciones init_main sentencias TOK_LLAVEDERECHA {
         escribir_fin(yyout);
-        fprintf(stderr, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> }\n");
+        fprintf(yyout, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> }\n");
     }
 ;
 
 init_sbtb: %empty {
-    fprintf(stderr, ";DEBUG: Creating symbol table\n");
+    fprintf(yyout, ";DEBUG: Creating symbol table\n");
     symb_tb = symb_tb_com_create();
     /* TODO : Error check ? */
 }
 
 init_assembly: %empty {
-    fprintf(stderr, ";DEBUG: Writing first chunk of assembly code\n");
+    fprintf(yyout, ";DEBUG: Writing first chunk of assembly code\n");
     escribir_subseccion_data(yyout);
     escribir_cabecera_bss(yyout);
     Symbol ** list;
@@ -118,105 +118,105 @@ init_assembly: %empty {
 }
 
 init_main:{
-    fprintf(stderr, ";DEBUG: Writing beggining of main\n");
+    fprintf(yyout, ";DEBUG: Writing beggining of main\n");
     escribir_inicio_main(yyout);
 }
 
 declaraciones:
-    declaracion { fprintf(stderr, ";R2:\t<declaraciones> ::= <declaracion>\n"); }
-|   declaracion declaraciones { fprintf(stderr, ";R3:\t<declaraciones> ::= <declaracion> <declaraciones>\n"); }
+    declaracion { fprintf(yyout, ";R2:\t<declaraciones> ::= <declaracion>\n"); }
+|   declaracion declaraciones { fprintf(yyout, ";R3:\t<declaraciones> ::= <declaracion> <declaraciones>\n"); }
 ;
 
 declaracion:
-    clase identificadores TOK_PUNTOYCOMA { fprintf(stderr, ";R4:\t<declaracion> ::= <clase> <identificadores> ;\n"); }
+    clase identificadores TOK_PUNTOYCOMA { fprintf(yyout, ";R4:\t<declaracion> ::= <clase> <identificadores> ;\n"); }
 ;
 
 clase:
     clase_escalar {
         clase_actual = SCALAR;
-        fprintf(stderr, ";R5:\t<clase> ::= <clase_escalar>\n");
+        fprintf(yyout, ";R5:\t<clase> ::= <clase_escalar>\n");
      }
 |   clase_vector {
         clase_actual = VECTOR;
-        fprintf(stderr, ";R7:\t<clase> ::= <clase_vector>\n");
+        fprintf(yyout, ";R7:\t<clase> ::= <clase_vector>\n");
     }
 ;
 
 clase_escalar:
-    tipo { fprintf(stderr, ";R9:\t<clase_escalar> ::= <tipo>\n"); }
+    tipo { fprintf(yyout, ";R9:\t<clase_escalar> ::= <tipo>\n"); }
 ;
 
 tipo:
     TOK_INT {
         tipo_actual = INTEGER;
-        fprintf(stderr, ";R10:\t<tipo> ::= int\n");
+        fprintf(yyout, ";R10:\t<tipo> ::= int\n");
     }
 |   TOK_BOOLEAN {
         tipo_actual = BOOLEAN;
-        fprintf(stderr, ";R11:\t<tipo> ::= boolean\n");
+        fprintf(yyout, ";R11:\t<tipo> ::= boolean\n");
     }
 ;
 
 clase_vector:
     TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETEDERECHO {
         vector_size = $4.int_value;
-        fprintf(stderr, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ]\n");
+        fprintf(yyout, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ]\n");
     }
 ;
 
 identificadores:
-    identificador { fprintf(stderr, ";R18:\t<identificadores> ::= <identificador>\n"); }
-|   identificador TOK_COMA identificadores { fprintf(stderr, ";R19:\t<identificadores> ::= <identificador> , <identificadores>\n"); }
+    identificador { fprintf(yyout, ";R18:\t<identificadores> ::= <identificador>\n"); }
+|   identificador TOK_COMA identificadores { fprintf(yyout, ";R19:\t<identificadores> ::= <identificador> , <identificadores>\n"); }
 ;
 
 funciones:
-    funcion funciones { fprintf(stderr, ";R20:\t<funciones> ::= <funcion> <funciones>\n"); }
-|   %empty { fprintf(stderr, ";R21:\t<funciones> ::=\n"); }
+    funcion funciones { fprintf(yyout, ";R20:\t<funciones> ::= <funcion> <funciones>\n"); }
+|   %empty { fprintf(yyout, ";R21:\t<funciones> ::=\n"); }
 ;
 
 funcion:
-    TOK_FUNCTION tipo identificador TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion sentencias TOK_LLAVEDERECHA { fprintf(stderr, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n"); }
+    TOK_FUNCTION tipo identificador TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion sentencias TOK_LLAVEDERECHA { fprintf(yyout, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n"); }
 ;
 
 parametros_funcion:
-    parametro_funcion resto_parametros_funcion { fprintf(stderr, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>\n"); }
-|   %empty { fprintf(stderr, ";R24:\t<parametros_funcion> ::=\n"); }
+    parametro_funcion resto_parametros_funcion { fprintf(yyout, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>\n"); }
+|   %empty { fprintf(yyout, ";R24:\t<parametros_funcion> ::=\n"); }
 ;
 
 resto_parametros_funcion:
-    TOK_PUNTOYCOMA parametro_funcion resto_parametros_funcion { fprintf(stderr, ";R25:\t<resto_parametros_funcion> ::= ; <parametro_funcion> <resto_parametros_funcion>\n"); }
-|   %empty { fprintf(stderr, ";R26:\t<resto_parametros_funcion> ::=\n"); }
+    TOK_PUNTOYCOMA parametro_funcion resto_parametros_funcion { fprintf(yyout, ";R25:\t<resto_parametros_funcion> ::= ; <parametro_funcion> <resto_parametros_funcion>\n"); }
+|   %empty { fprintf(yyout, ";R26:\t<resto_parametros_funcion> ::=\n"); }
 ;
 
 parametro_funcion:
-    tipo identificador { fprintf(stderr, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n"); }
+    tipo identificador { fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n"); }
 ;
 
 declaraciones_funcion:
-    declaraciones { fprintf(stderr, ";R28:\t<declaraciones_funcion> ::= <declaraciones>\n"); }
-|   %empty { fprintf(stderr, ";R28:\t<declaraciones_funcion> ::=\n"); }
+    declaraciones { fprintf(yyout, ";R28:\t<declaraciones_funcion> ::= <declaraciones>\n"); }
+|   %empty { fprintf(yyout, ";R28:\t<declaraciones_funcion> ::=\n"); }
 ;
 
 sentencias:
-    sentencia { fprintf(stderr, ";R30:\t<sentencias> ::= <sentencia>\n"); }
-|   sentencia sentencias { fprintf(stderr, ";R31:\t<sentencias> ::= <sentencia> <sentencias>\n"); }
+    sentencia { fprintf(yyout, ";R30:\t<sentencias> ::= <sentencia>\n"); }
+|   sentencia sentencias { fprintf(yyout, ";R31:\t<sentencias> ::= <sentencia> <sentencias>\n"); }
 ;
 
 sentencia:
-    sentencia_simple TOK_PUNTOYCOMA { fprintf(stderr, ";R32:\t<sentencia> ::= <sentencia_simple> ;\n"); }
-|   bloque { fprintf(stderr, ";R33:\t<sentencia> ::= <bloque>\n"); }
+    sentencia_simple TOK_PUNTOYCOMA { fprintf(yyout, ";R32:\t<sentencia> ::= <sentencia_simple> ;\n"); }
+|   bloque { fprintf(yyout, ";R33:\t<sentencia> ::= <bloque>\n"); }
 ;
 
 sentencia_simple:
-    asignacion { fprintf(stderr, ";R34:\t<sentencia_simple> ::= <asignacion>\n"); }
-|   lectura { fprintf(stderr, ";R35:\t<sentencia_simple> ::= <lectura>\n"); }
-|   escritura { fprintf(stderr, ";R36:\t<sentencia_simple> ::= <escritura>\n"); }
-|   retorno_funcion { fprintf(stderr, ";R38:\t<sentencia_simple> ::= <retorno_funcion>\n"); }
+    asignacion { fprintf(yyout, ";R34:\t<sentencia_simple> ::= <asignacion>\n"); }
+|   lectura { fprintf(yyout, ";R35:\t<sentencia_simple> ::= <lectura>\n"); }
+|   escritura { fprintf(yyout, ";R36:\t<sentencia_simple> ::= <escritura>\n"); }
+|   retorno_funcion { fprintf(yyout, ";R38:\t<sentencia_simple> ::= <retorno_funcion>\n"); }
 ;
 
 bloque:
-    condicional { fprintf(stderr, ";R40:\t<bloque> ::= <condicional>\n"); }
-|   bucle { fprintf(stderr, ";R41:\t<bloque> ::= <bucle>\n"); }
+    condicional { fprintf(yyout, ";R40:\t<bloque> ::= <condicional>\n"); }
+|   bucle { fprintf(yyout, ";R41:\t<bloque> ::= <bucle>\n"); }
 ;
 
 asignacion:
@@ -225,11 +225,12 @@ asignacion:
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
         if(!symb){
-            /* TODO : Error -> variable no declarada */
+            printf("****Error semantico en lin %lu: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
             return -1;
         }
         if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR || symb->symb_type != $3.type){
-            /* TODO : Error -> asignacion incompatible */
+            printf("symb->symb_type: %d, $3.type: %d\n", symb->symb_type, $3.type);
+            printf("****Error semantico en lin %lu: Asignacion incompatible.\n", nlines);
             return -1;
         }
 
@@ -241,23 +242,23 @@ asignacion:
             }
         } else {
             asignar(yyout, symb->id, $3.is_address);
-            fprintf(stderr, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
+            fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
         }
     }
-|   elemento_vector TOK_ASIGNACION exp { fprintf(stderr, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n"); }
+|   elemento_vector TOK_ASIGNACION exp { fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n"); }
 ;
 
 elemento_vector:
-    identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO { fprintf(stderr, ";R48:\t<elemento_vector> ::= <identificador>\n"); }
+    identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO { fprintf(yyout, ";R48:\t<elemento_vector> ::= <identificador>\n"); }
 ;
 
 condicional:
-    TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA exp TOK_LLAVEDERECHA { fprintf(stderr, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> }\n"); }
-|   TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA exp TOK_LLAVEDERECHA TOK_ELSE TOK_LLAVEIZQUIERDA exp TOK_LLAVEIZQUIERDA { fprintf(stderr, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> }\n"); }
+    TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA exp TOK_LLAVEDERECHA { fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> }\n"); }
+|   TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA exp TOK_LLAVEDERECHA TOK_ELSE TOK_LLAVEIZQUIERDA exp TOK_LLAVEIZQUIERDA { fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> }\n"); }
 ;
 
 bucle:
-    TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA { fprintf(stderr, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> }\n"); }
+    TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA { fprintf(yyout, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> }\n"); }
 ;
 
 lectura:
@@ -282,41 +283,111 @@ lectura:
         //     }
         // } else {
         //     asignar(yyout, symb->id, $3.is_address);
-        //     fprintf(stderr, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
+        //     fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
         // }
 
         leer(yyout, symb->id, symb->symb_type);
-        fprintf(stderr, ";R54:\t<lectura> ::= scanf <identificador>\n");
+        fprintf(yyout, ";R54:\t<lectura> ::= scanf <identificador>\n");
     }
 ;
 
 escritura:
     TOK_PRINTF exp {
         // escribir_operando(yyout, $2.lexeme, $2.is_address); XXX: Ya lo está haciendo TOK_IDENTIFICADOR en <exp>
+        printf("%d\n", $2.type);
         escribir(yyout, $2.is_address, $2.type);
-        fprintf(stderr, ";R56:\t<escritura> ::= printf <exp>\n");
+        fprintf(yyout, ";R56:\t<escritura> ::= printf <exp>\n");
     }
 ;
 
 retorno_funcion:
-    TOK_RETURN exp { fprintf(stderr, ";R61:\t<retorno_funcion> ::= return <exp>\n"); }
+    TOK_RETURN exp { fprintf(yyout, ";R61:\t<retorno_funcion> ::= return <exp>\n"); }
 ;
 
 exp:
-    exp TOK_MAS exp { fprintf(stderr, ";R72:\t<exp> ::= <exp> + <exp>\n"); }
-|   exp TOK_MENOS exp { fprintf(stderr, ";R73:\t<exp> ::= <exp> - <exp>\n"); }
-|   exp TOK_DIVISION exp { fprintf(stderr, ";R74:\t<exp> ::= <exp> / <exp>\n"); }
-|   exp TOK_ASTERISCO exp { fprintf(stderr, ";R75:\t<exp> ::= <exp> * <exp>\n"); }
-|   TOK_MENOS exp { fprintf(stderr, ";R76:\t<exp> ::= -<exp>\n"); }
-|   exp TOK_AND exp { fprintf(stderr, ";R77:\t<exp> ::= <exp> && <exp>\n"); }
-|   exp TOK_OR exp { fprintf(stderr, ";R78:\t<exp> ::= <exp> || <exp>\n"); }
-|   TOK_NOT exp { fprintf(stderr, ";R79:\t<exp> ::= !<exp>\n"); }
+    exp TOK_MAS exp {
+        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+        $$.type = INTEGER;
+        $$.is_address = 0;
+        $$.int_value = $1.int_value + $3.int_value;
+        sumar(yyout, $1.is_address, $3.is_address);
+        fprintf(yyout, ";R72:\t<exp> ::= <exp> + <exp>\n");
+    }
+|   exp TOK_MENOS exp {
+        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+        $$.type = INTEGER;
+        $$.is_address = 0;
+        $$.int_value = $1.int_value - $3.int_value;
+        restar(yyout, $1.is_address, $3.is_address);
+        fprintf(yyout, ";R73:\t<exp> ::= <exp> - <exp>\n");
+    }
+|   exp TOK_DIVISION exp {
+        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+        $$.type = INTEGER;
+        $$.is_address = 0;
+        if (!$3.int_value) {
+            $$.int_value = -1;
+        } else {
+            $$.int_value = $1.int_value / $3.int_value;
+        }
+        dividir(yyout, $1.is_address, $3.is_address);
+        fprintf(yyout, ";R74:\t<exp> ::= <exp> / <exp>\n");
+    }
+|   exp TOK_ASTERISCO exp {
+        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+        $$.type = INTEGER;
+        $$.is_address = 0;
+        $$.int_value = $1.int_value * $3.int_value;
+        multiplicar(yyout, $1.is_address, $3.is_address);
+        fprintf(yyout, ";R75:\t<exp> ::= <exp> * <exp>\n");
+    }
+|   TOK_MENOS exp {
+        if ($2.type == BOOLEAN){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+        $$.type = INTEGER;
+        $$.is_address = 0;
+        $$.int_value = -1 * $2.int_value;
+        cambiar_signo(yyout, $2.is_address);
+        fprintf(yyout, ";R76:\t<exp> ::= -<exp>\n");
+    }
+|   exp TOK_AND exp {
+        if ($1.type == INTEGER || $3.type == INTEGER){
+            printf("****Error semantico en lin %d: Operacion logica con operandos int.\n", nlines);
+            return -1;
+        }
+        $$.type = BOOLEAN;
+        $$.is_address = 0;
+        $$.int_value = $1.int_value & $3.int_value;
+        y(yyout, $1.is_address, $3.is_address);
+        fprintf(yyout, ";R77:\t<exp> ::= <exp> && <exp>\n");
+    }
+|   exp TOK_OR exp {
+        fprintf(yyout, ";R78:\t<exp> ::= <exp> || <exp>\n");
+    }
+|   TOK_NOT exp {
+        fprintf(yyout, ";R79:\t<exp> ::= !<exp>\n");
+    }
 |   TOK_IDENTIFICADOR {
         int is_local = -1;
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
         if(!symb){
             /* TODO : Error -> variable no declarada */
+            printf("Undeclared\n");
             return -1;
         }
         if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR){
@@ -330,7 +401,7 @@ exp:
         escribir_operando(yyout, symb->id, 1);
         /* TODO : Escritura en ensamblador de la introduccion en la pila de la dirección del identificador: push dword  _$1.lexema */
 
-        fprintf(stderr, ";R80:\t<exp> ::= <identificador>\n");
+        fprintf(yyout, ";R80:\t<exp> ::= <identificador>\n");
     }
 |   constante {
         $$.type = $1.type;
@@ -338,52 +409,62 @@ exp:
         char buff[20];
         sprintf(buff, "%d", $1.int_value);
         escribir_operando(yyout, buff, $1.is_address); /*TODO: CODIFICAR TRUE Y FALSE ADECUADAMENTE O HACER UN IF*/
-        fprintf(stderr, ";R81:\t<exp> ::= <constante>\n");
+        fprintf(yyout, ";R81:\t<exp> ::= <constante>\n");
     }
-|   TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO { fprintf(stderr, ";R82:\t<exp> ::= (<exp>)\n"); }
-|   TOK_PARENTESISIZQUIERDO comparacion TOK_PARENTESISDERECHO { fprintf(stderr, ";R83:\t<exp> ::= (<comparacion>)\n"); }
-|   elemento_vector { fprintf(stderr, ";R85:\t<exp> ::= <elemento_vector>\n"); }
-|   identificador TOK_PARENTESISIZQUIERDO lista_expresiones TOK_PARENTESISDERECHO { fprintf(stderr, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n"); }
+|   TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO { fprintf(yyout, ";R82:\t<exp> ::= (<exp>)\n"); }
+|   TOK_PARENTESISIZQUIERDO comparacion TOK_PARENTESISDERECHO { fprintf(yyout, ";R83:\t<exp> ::= (<comparacion>)\n"); }
+|   elemento_vector { fprintf(yyout, ";R85:\t<exp> ::= <elemento_vector>\n"); }
+|   identificador TOK_PARENTESISIZQUIERDO lista_expresiones TOK_PARENTESISDERECHO { fprintf(yyout, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n"); }
 ;
 
 lista_expresiones:
-    exp resto_lista_expresiones { fprintf(stderr, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n"); }
-|   %empty { fprintf(stderr, ";R90:\t<lista_expresiones> ::=\n"); }
+    exp resto_lista_expresiones { fprintf(yyout, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n"); }
+|   %empty { fprintf(yyout, ";R90:\t<lista_expresiones> ::=\n"); }
 ;
 
 resto_lista_expresiones:
-    TOK_COMA exp resto_lista_expresiones { fprintf(stderr, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n"); }
-|   %empty { fprintf(stderr, ";R92:\t<resto_lista_expresiones> ::=\n"); }
+    TOK_COMA exp resto_lista_expresiones { fprintf(yyout, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n"); }
+|   %empty { fprintf(yyout, ";R92:\t<resto_lista_expresiones> ::=\n"); }
 ;
 
 comparacion:
-    exp TOK_IGUAL exp { fprintf(stderr, ";R93:\t<comparacion> ::= <exp> == <exp>\n"); }
-|   exp TOK_DISTINTO exp { fprintf(stderr, ";R94:\t<comparacion> ::= <exp> != <exp>\n"); }
-|   exp TOK_MENORIGUAL exp { fprintf(stderr, ";R95:\t<comparacion> ::= <exp> <= <exp>\n"); }
-|   exp TOK_MAYORIGUAL exp { fprintf(stderr, ";R96:\t<comparacion> ::= <exp> >= <exp>\n"); }
-|   exp TOK_MENOR exp { fprintf(stderr, ";R97:\t<comparacion> ::= <exp> < <exp>\n"); }
-|   exp TOK_MAYOR exp { fprintf(stderr, ";R98:\t<comparacion> ::= <exp> > <exp>\n"); }
+    exp TOK_IGUAL exp { fprintf(yyout, ";R93:\t<comparacion> ::= <exp> == <exp>\n"); }
+|   exp TOK_DISTINTO exp { fprintf(yyout, ";R94:\t<comparacion> ::= <exp> != <exp>\n"); }
+|   exp TOK_MENORIGUAL exp { fprintf(yyout, ";R95:\t<comparacion> ::= <exp> <= <exp>\n"); }
+|   exp TOK_MAYORIGUAL exp { fprintf(yyout, ";R96:\t<comparacion> ::= <exp> >= <exp>\n"); }
+|   exp TOK_MENOR exp { fprintf(yyout, ";R97:\t<comparacion> ::= <exp> < <exp>\n"); }
+|   exp TOK_MAYOR exp { fprintf(yyout, ";R98:\t<comparacion> ::= <exp> > <exp>\n"); }
 ;
 
 constante:
     constante_entera {
         $$.type = $1.type;
         $$.is_address = $1.is_address;
-        fprintf(stderr, ";R99:\t<constante> ::= <constante_entera>\n");
+        fprintf(yyout, ";R99:\t<constante> ::= <constante_entera>\n");
     }
-|   constante_logica { fprintf(stderr, ";R100:\t<constante> ::= <constante_logica>\n"); }
+|   constante_logica { fprintf(yyout, ";R100:\t<constante> ::= <constante_logica>\n"); }
 ;
 
 constante_logica:
-    TOK_TRUE { fprintf(stderr, ";R102:\t<constante_logica> ::= true\n"); }
-|   TOK_FALSE { fprintf(stderr, ";R103:\t<constante_logica> ::= false\n"); }
+    TOK_TRUE {
+        $$.type = BOOLEAN;
+        $$.is_address = 0;
+        $$.int_value = 1;
+        fprintf(yyout, ";R102:\t<constante_logica> ::= true\n");
+    }
+|   TOK_FALSE {
+        $$.type = BOOLEAN;
+        $$.is_address = 0;
+        $$.int_value = 0;
+        fprintf(yyout, ";R103:\t<constante_logica> ::= false\n");
+    }
 ;
 
 constante_entera: TOK_CONSTANTE_ENTERA {
     $$.type = INTEGER;
     $$.is_address = 0;
     $$.int_value = $1.int_value;
-    fprintf(stderr, ";R104:\t<constante_entera> ::= TOK_CONSTANTE_ENTERA\n");
+    fprintf(yyout, ";R104:\t<constante_entera> ::= TOK_CONSTANTE_ENTERA\n");
     /* TODO : Meter en la pila la constante -> ¿ operandoEnPilaAArgumento(yyout, $$.is_address) ? */
 }
 ;
@@ -423,7 +504,7 @@ identificador: TOK_IDENTIFICADOR {
     */
     symb_tb_com_insert(symb_tb, symb);
 
-    fprintf(stderr, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
+    fprintf(yyout, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
 }
 ;
 

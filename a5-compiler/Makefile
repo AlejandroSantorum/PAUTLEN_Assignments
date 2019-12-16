@@ -1,7 +1,8 @@
 CC=gcc
 CFLAGS=-Wall
+EXE = alfa mini mini2
 
-all: alfa
+all: alfa mini mini2
 
 alfa: alfa.c lex.yy.o y.tab.o generacion.o symbol_table_com.o hash_table_com.o
 	$(CC) $(CFLAGS) $^ -o $@
@@ -30,9 +31,20 @@ y.tab.c: alfa.y
 y.tab.h: alfa.y
 	bison -d -y -v $^
 
+mini: alfa mini.alfa
+	./alfa $@.alfa $@.asm
+	nasm -g -o $@.o -f elf32 $@.asm
+	gcc -m32 -o $@ $@.o ../alfalib.o
+
+
+mini2: alfa mini2.alfa
+	./alfa $@.alfa $@.asm
+	nasm -g -o $@.o -f elf32 $@.asm
+	gcc -m32 -o $@ $@.o ../alfalib.o
+
 alfa.c:
 	@echo "Empty" > /dev/null
 
 .PHONY: clean
 clean:
-	rm -rf *.o alfa lex.yy.* y.tab.* y.output
+	rm -rf *.o alfa lex.yy.* y.tab.* y.output $(EXE)
