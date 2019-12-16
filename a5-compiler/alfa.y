@@ -236,12 +236,10 @@ asignacion:
         if(is_local){ /* Local variable */
             if(symb->symb_cat == PARAMETER){
                 /* TODO : GENERACION */
-            }
-            else{
+            } else {
                 /* TODO : GENERACION */
             }
-        }
-        else{
+        } else {
             asignar(yyout, symb->id, $3.is_address);
             fprintf(stderr, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
         }
@@ -263,7 +261,33 @@ bucle:
 ;
 
 lectura:
-    TOK_SCANF identificador { fprintf(stderr, ";R54:\t<lectura> ::= scanf <identificador>\n"); }
+    TOK_SCANF identificador {
+        int is_local = -1;
+        Symbol *symb=NULL;
+        symb = symb_tb_com_search(symb_tb, $2.lexeme, &is_local);
+        if(!symb){
+            /* TODO : Error -> variable no declarada */
+            return -1;
+        }
+        if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR){
+            /* TODO : Error -> asignacion incompatible */
+            return -1;
+        }
+
+        // if(is_local){ /* Local variable */
+        //     if(symb->symb_cat == PARAMETER){
+        //         /* TODO : GENERACION */
+        //     } else {
+        //         /* TODO : GENERACION */
+        //     }
+        // } else {
+        //     asignar(yyout, symb->id, $3.is_address);
+        //     fprintf(stderr, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
+        // }
+
+        leer(yyout, symb->id, symb->symb_type);
+        fprintf(stderr, ";R54:\t<lectura> ::= scanf <identificador>\n");
+    }
 ;
 
 escritura:
