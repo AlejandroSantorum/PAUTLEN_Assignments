@@ -92,7 +92,7 @@ void multiplicar(FILE* fpasm, int es_variable_1, int es_variable_2){
 
 void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
     _pop_valores_reg(fpasm, es_variable_1, es_variable_2);
-    fprintf(fpasm, "mov edx, 0\n");
+    fprintf(fpasm, "cdq\n");
     fprintf(fpasm, "cmp ebx, 0\n");
     fprintf(fpasm, "je div_zero_f\n");
     fprintf(fpasm, "idiv ebx\n");

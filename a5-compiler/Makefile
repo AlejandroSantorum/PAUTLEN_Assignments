@@ -1,8 +1,9 @@
 CC=gcc
 CFLAGS=-Wall
-EXE = alfa mini mini2
+MINI = mini mini2 mini3 mini4 mini5 mini6 factorial
+EXE = alfa $(MINI)
 
-all: alfa mini mini2
+all: $(EXE)
 
 alfa: alfa.c lex.yy.o y.tab.o generacion.o symbol_table_com.o hash_table_com.o
 	$(CC) $(CFLAGS) $^ -o $@
@@ -31,13 +32,7 @@ y.tab.c: alfa.y
 y.tab.h: alfa.y
 	bison -d -y -v $^
 
-mini: alfa mini.alfa
-	./alfa $@.alfa $@.asm
-	nasm -g -o $@.o -f elf32 $@.asm
-	gcc -m32 -o $@ $@.o ../alfalib.o
-
-
-mini2: alfa mini2.alfa
+${MINI}: %: alfa %.alfa
 	./alfa $@.alfa $@.asm
 	nasm -g -o $@.o -f elf32 $@.asm
 	gcc -m32 -o $@ $@.o ../alfalib.o
