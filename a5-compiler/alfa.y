@@ -14,7 +14,9 @@ void yyerror(const char * s);
 int tipo_actual;
 int clase_actual;
 int vector_size = 0;
-int label=1;
+int label = 1;
+int active_func = 0; /* Flag that indicates if a function declaration is being processed */
+int func_ret = 0; /* Flag that indicates if the current function has return statement */
 
 symbol_tb_com *symb_tb=NULL;
 
@@ -190,9 +192,41 @@ funciones:
 |   %empty { fprintf(yyout, ";R21:\t<funciones> ::=\n"); }
 ;
 
-funcion:
-    TOK_FUNCTION tipo identificador TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion sentencias TOK_LLAVEDERECHA { fprintf(yyout, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n"); }
-;
+// funcion:
+//     TOK_FUNCTION tipo identificador TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion sentencias TOK_LLAVEDERECHA { fprintf(yyout, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n"); }
+// ;
+
+funcion: fn_declaration sentencias TOK_LLAVEDERECHA {
+    //COMPROBACIONES SEMANTICAS
+    //ERROR SI LA FUNCION NO TIENE SENTENCIA DE RETORNO
+    //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $1.nombre
+    //CIERRE DE AMBITO, ETC
+    //  simbolo->num_parametros = num_parametros;
+};
+
+fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion {
+    //COMPROBACIONES SEMANTICAS
+    //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $1.nombre
+    simbolo->num_parametros = num_parametros;
+    strcpy($$.nombre, $1.nombre);
+    $$.tipo = $1.tipo;
+    //GENERACION DE CODIGO
+    declararFuncion(out, $1.nombre, num_variables_locales_actual);
+}
+
+fn_name : TOK_FUNCTION tipo TOK_IDENTIFICADOR {
+    //COMPROBACIONES SEMANTICAS
+    //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $3.nombre
+    simbolo.identificador = $3.nombre;
+    simbolo.cat_simbolo = FUNCION;
+    simbolo.tipo = tipo_actual;
+    $$.tipo = tipo_actual;
+    strcpy($$.nombre, $3.nombre);
+
+    //ABRIR AMBITO EN LA TABLA DE SIMBOLOS CON IDENTIFICADOR $3.nombre
+    //RESETEAR VARIABLES QUE NECESITAMOS PARA PROCESAR LA FUNCION:
+    //posicion_variable_local, num_variables_locales, posicion_parametro, num_parametros
+}
 
 parametros_funcion:
     parametro_funcion resto_parametros_funcion { fprintf(yyout, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>\n"); }
@@ -205,8 +239,19 @@ resto_parametros_funcion:
 ;
 
 parametro_funcion:
-    tipo identificador { fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n"); }
+    tipo idpf { fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n"); }
 ;
+
+idpf : TOK_IDENTIFICADOR {
+    //COMPROBACIONES SEMANTICAS PARA $1.nombre
+    //EN ESTE CASO SE MUESTRA ERROR SI EL NOMBRE DEL PARAMETRO YA SE HA UTILIZADO
+    simbolo.identificador = $1.nombre;
+    simbolo.cat_simbolo = PARAMETRO;
+    simbolo.tipo = tipo_actual;
+    simbolo.categoria = ESCALAR;
+    simbolo.posicion = posicion_paremetro;
+    //DECLARAR SIMBOLO EN LA TABLA
+}
 
 declaraciones_funcion:
     declaraciones { fprintf(yyout, ";R28:\t<declaraciones_funcion> ::= <declaraciones>\n"); }
