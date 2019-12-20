@@ -165,6 +165,17 @@ tipo:
 clase_vector:
     TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETEDERECHO {
         vector_size = $4.int_value;
+        if(vector_size <= 0){
+            // printf("****Error semantico en lin %ld: El tamanyo del vector excede los limites permitidos (1,64).\n", nlines);
+            /* TODO : Comprobar que el error devuelto es el correto */
+            return -1;
+        }
+        if (vector_size > MAX_VECTOR_SIZE){
+            // printf("****Error semantico en lin %ld: El tamanyo del vector excede los limites permitidos (1,64).\n", nlines);
+            /* TODO : Comprobar que el error devuelto es el correto */
+            return -1;
+        }
+        $$.int_value = $4.int_value;
         fprintf(yyout, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ]\n");
     }
 ;
@@ -249,11 +260,52 @@ asignacion:
             fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
         }
     }
-|   elemento_vector TOK_ASIGNACION exp { fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n"); }
+|   elemento_vector TOK_ASIGNACION exp {
+        if($1.type != $3.type) {
+            //printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
+            // TODO: Comprobar que el error devuelto es el correto
+            return -1;
+        }
+        /* TODO : Comprobar que lo de abajo es correcto (escrito por Pablo Abajo) */
+        escribir_operando(yyout, $1.int_value, 0);
+        escribir_elemento_vector(yyout, $1.lexeme, simbolo->longitud, $3.is_address); // TODO : Que es simbolo ??
+        asignarDestinoEnPila(yyout, $3.is_address);
+        /***************************************************/
+        fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
+    }
 ;
 
 elemento_vector:
-    identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO { fprintf(yyout, ";R48:\t<elemento_vector> ::= <identificador>\n"); }
+    identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
+        if($3.type != INTEGER){
+            // TODO : Comprobar error devuelto
+            printf("****Error semantico en lin %ld: El indice en una operacion de indexacion tiene que ser de tipo entero.\n", nlines);
+            return -1;
+        }
+
+        int is_local;
+        Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        if(!symb){
+            // TODO : Comprobar error devuelto
+            printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $1.nombre);
+            return -1;
+        }
+        if(symb->symb_cat == FUNCTION){
+            // TODO : Comprobar error devuelto
+            printf("****Error semantico en lin %ld: Identificador no valido\n", nlines);
+            return -1;
+        }
+        if(symb->var_cat != VECTOR){
+            // TODO: Comprobar error devuelto
+            printf("****Error semantico en lin %ld: Intento de indexacion de una variable que no es de tipo vector.\n", nlines);
+            return -1;
+        }
+
+        $$.type = symb->symb_type;
+        $$.is_address = 1;
+        escribir_elemento_vector(yyout, $1.lexeme, symb->len, $3.is_address);
+        fprintf(yyout, ";R48:\t<elemento_vector> ::= <identificador>\n");
+    }
 ;
 
 condicional:
