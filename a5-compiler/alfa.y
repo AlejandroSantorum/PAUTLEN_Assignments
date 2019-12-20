@@ -13,6 +13,11 @@ void yyerror(const char * s);
 
 int tipo_actual;
 int clase_actual;
+int pos_variable_local;
+int num_variables_locales;
+int num_parametros;
+int pos_parametro;
+
 int vector_size = 0;
 int label = 1;
 int active_func = 0; /* Flag that indicates if a function declaration is being processed */
@@ -197,14 +202,48 @@ funciones:
 // ;
 
 funcion: fn_declaration sentencias TOK_LLAVEDERECHA {
+    /******************* PSEUDO ***************************************/
     //COMPROBACIONES SEMANTICAS
     //ERROR SI LA FUNCION NO TIENE SENTENCIA DE RETORNO
     //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $1.nombre
     //CIERRE DE AMBITO, ETC
     //  simbolo->num_parametros = num_parametros;
+    /************************************************************************/
+    if(func_ret == 0) {
+        // TODO : Comprobar error
+        printf("****Error semantico en lin %ld: Funcion %s sin sentencia de retorno.\n", nlines, $1.lexeme);
+        return -1;
+    }
+
+    /* Closing domain */
+    Symbol *symb=NULL;
+    symb = (Symbol *) calloc(1, sizeof(Symbol)); /* Creating symbol */
+    /* TODO : Error check ? */
+    symb->id = (char *) calloc(strlen("cierre")+1, sizeof(char));
+
+    strcpy(symb->id, "cierre");
+    symb->symb_cat = FUNCTION;
+    symb_tb_com_insert(symb_tb, symb);
+
+    free(symb->id);
+    free(symb);
+
+    int is_local;
+    symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if(!symb){
+        // TODO : Comprobar error
+        printf("****Error semantico en lin %ld: Declaracion duplicada.\n", nlines);
+        return -1;
+    }
+    symb->num_parametros = num_parametros;
+
+    active_func = 0;
+
+    fprintf(yyout, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n");
 };
 
 fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion {
+    /******************* PSEUDO ***************************************/
     //COMPROBACIONES SEMANTICAS
     //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $1.nombre
     simbolo->num_parametros = num_parametros;
@@ -212,9 +251,22 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
     $$.tipo = $1.tipo;
     //GENERACION DE CODIGO
     declararFuncion(out, $1.nombre, num_variables_locales_actual);
+    /*********************************************************************************/
+    int is_local;
+    Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if(!symb){
+        // TODO : Comprobar error
+        printf(yyout, "****Error semantico en lin %ld: Declaracion duplicada.\n", nlines);
+        return -1;
+    }
+    symb->num_param = num_parametros;
+    strcpy($$.lexeme, $1.lexeme);
+    $$.type = $1.type;
+    declararFuncion(yyout, $1.lexeme, num_variables_locales);
 }
 
 fn_name : TOK_FUNCTION tipo TOK_IDENTIFICADOR {
+    /******************* PSEUDO ***************************************/
     //COMPROBACIONES SEMANTICAS
     //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $3.nombre
     simbolo.identificador = $3.nombre;
@@ -226,6 +278,34 @@ fn_name : TOK_FUNCTION tipo TOK_IDENTIFICADOR {
     //ABRIR AMBITO EN LA TABLA DE SIMBOLOS CON IDENTIFICADOR $3.nombre
     //RESETEAR VARIABLES QUE NECESITAMOS PARA PROCESAR LA FUNCION:
     //posicion_variable_local, num_variables_locales, posicion_parametro, num_parametros
+    /*********************************************************************************/
+    active_func = 1;
+    func_ret = 0;
+
+    int is_local;
+    Symbol *symb = symb_tb_com_search(symb_tb, $3.lexeme, &is_local);
+    if(!symb){
+        // TODO : Comprobar error
+        printf("****Error semantico en lin %ld: Declaracion duplicada.\n", nlines);
+        return -1;
+    }
+
+    /* Creating symbol */
+    Symbol *insert_symb=NULL;
+    insert_symb = (Symbol *) calloc(1, sizeof(Symbol));
+    /* TODO : Error check ? */
+    insert_symb->id = (char *) calloc(strlen($3.lexeme)+1, sizeof(char));
+
+    strcpy(insert_symb->id, $3.lexeme);
+    insert_symb->symb_cat = FUNCTION;
+    insert_symb->symb_type = tipo_actual;
+    $$.type = tipo_actual;
+    strcpy($$.lexeme, $3.lexeme);
+    symb_tb_com_insert(symb_tb, insert_symb);
+    pos_variable_local = 0;
+    num_variables_locales = 0;
+    pos_parametro = 0;
+    num_parametros = 0;
 }
 
 parametros_funcion:
@@ -239,10 +319,15 @@ resto_parametros_funcion:
 ;
 
 parametro_funcion:
-    tipo idpf { fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n"); }
+    tipo idpf {
+        num_parametros++;
+        pos_parametro++;
+        fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n");
+    }
 ;
 
 idpf : TOK_IDENTIFICADOR {
+    /******************* PSEUDO ***************************************/
     //COMPROBACIONES SEMANTICAS PARA $1.nombre
     //EN ESTE CASO SE MUESTRA ERROR SI EL NOMBRE DEL PARAMETRO YA SE HA UTILIZADO
     simbolo.identificador = $1.nombre;
@@ -251,6 +336,27 @@ idpf : TOK_IDENTIFICADOR {
     simbolo.categoria = ESCALAR;
     simbolo.posicion = posicion_paremetro;
     //DECLARAR SIMBOLO EN LA TABLA
+    /*********************************************************************************/
+    int is_local;
+    Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if(!symb){
+        // TODO : Comprobar error
+        printf("****Error semantico en lin %ld: Declaracion duplicada.\n", nlines);
+        return -1;
+    }
+
+    /* Creating symbol */
+    Symbol *insert_symb=NULL;
+    insert_symb = (Symbol *) calloc(1, sizeof(Symbol));
+    /* TODO : Error check ? */
+    insert_symb->id = (char *) calloc(strlen($3.lexeme)+1, sizeof(char));
+
+    strcpy(insert_symb->id, $1.lexeme);
+    insert_symb->symb_cat = PARAMETER;
+    insert_symb->symb_type = SCALAR;
+    insert_symb->symb_type = tipo_actual;
+    insert_symb->pos = pos_parametro;
+    symb_tb_com_insert(symb_tb, insert_symb);
 }
 
 declaraciones_funcion:
