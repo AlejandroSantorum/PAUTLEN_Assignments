@@ -157,8 +157,8 @@ elemento_vector:
 ;
 
 condicional:
-    TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA exp TOK_LLAVEDERECHA { fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> }\n"); }
-|   TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA exp TOK_LLAVEDERECHA TOK_ELSE TOK_LLAVEIZQUIERDA exp TOK_LLAVEIZQUIERDA { fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> }\n"); }
+    TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA { fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> }\n"); }
+|   TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA TOK_ELSE TOK_LLAVEIZQUIERDA exp TOK_LLAVEDERECHA { fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> }\n"); }
 ;
 
 bucle:
