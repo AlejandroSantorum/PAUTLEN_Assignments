@@ -90,6 +90,7 @@ symbol_tb_com *symb_tb=NULL;
 %type <attributes> funcion
 %type <attributes> fn_declaration
 %type <attributes> fn_name
+%type <attributes> exp_fn
 
 %left TOK_IGUAL TOK_MENORIGUAL TOK_MENOR TOK_MAYORIGUAL TOK_MAYOR TOK_DISTINTO
 %left TOK_AND TOK_OR
@@ -108,7 +109,6 @@ programa:
 
 init_sbtb: %empty {
     symb_tb = symb_tb_com_create();
-    /* TODO : Error check ? */
 }
 
 init_assembly: %empty {
@@ -129,7 +129,6 @@ init_assembly: %empty {
     }
     free(list);
     escribir_segmento_codigo(yyout);
-    /* TODO: Escribir variables de las tablas no globales ???? */
 }
 
 init_main: %empty {
@@ -243,9 +242,11 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
     /*********************************************************************************/
     int is_local;
     Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    printf("NUMERO DE PARAMETROS: %d\n", num_parametros);
     symb->num_param = num_parametros;
     symb->num_local_var = num_variables_locales;
     symb_tb_com_update(symb_tb, symb->id, symb);
+    symb->symb_type = $1.type;
     strcpy($$.lexeme, $1.lexeme);
     $$.type = $1.type;
     declararFuncion(yyout, $1.lexeme, num_variables_locales);
@@ -379,13 +380,15 @@ asignacion:
             return -1;
         }
         if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR || symb->symb_type != $3.type){
+            printf("%d %d\n", symb->symb_type, $3.type);
             printf("****Error semantico en lin %lu: Asignacion incompatible.\n", nlines);
             return -1;
         }
 
         if(is_local){ /* Local variable */
             if(symb->symb_cat == PARAMETER){
-                escribirParametro(yyout, symb->pos, num_variables_locales);
+                printf("%d, %d PARAMETROS\n", symb->pos, num_parametros);
+                escribirParametro(yyout, symb->pos, num_parametros);
                 asignarDestinoEnPila(yyout, $3.is_address);
             } else {
                 escribirVariableLocal(yyout, symb->pos);
@@ -445,10 +448,6 @@ elemento_vector:
         $$.type = symb->symb_type;
         $$.is_address = 1;
         $$.int_value = $3.int_value;
-        fprintf(yyout, ";escribir_elemento_vector --------------\n");
-        // char buff[255];
-        // sprintf(buff, "%d", $3.int_value);
-        // escribir_operando(yyout, buff, 0);
         escribir_elemento_vector(yyout, $1.lexeme, symb->len, $3.is_address);
         fprintf(yyout, ";R48:\t<elemento_vector> ::= <identificador>\n");
     }
@@ -518,17 +517,6 @@ lectura:
             /* TODO : Error -> asignacion incompatible */
             return -1;
         }
-
-        // if(is_local){ /* Local variable */
-        //     if(symb->symb_cat == PARAMETER){
-        //         /* TODO : GENERACION */
-        //     } else {
-        //         /* TODO : GENERACION */
-        //     }
-        // } else {
-        //     asignar(yyout, symb->id, $3.is_address);
-        //     fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
-        // }
 
         leer(yyout, symb->id, symb->symb_type);
         fprintf(yyout, ";R54:\t<lectura> ::= scanf <identificador>\n");
@@ -662,8 +650,9 @@ exp:
 
         if(is_local){ /* Local variable */
             if(symb->symb_cat == PARAMETER){
+                printf("PARAMETROS: %d, %d\n", symb->pos, num_parametros);
                 // TODO: Quizá el último parámetro lo tenemos que sacar del simbolo de la tabla
-                escribirParametro(yyout, symb->pos, num_variables_locales);
+                escribirParametro(yyout, symb->pos, num_parametros);
             } else {
                 escribirVariableLocal(yyout, symb->pos);
             }
@@ -698,21 +687,23 @@ exp:
         int is_local = -1; /* To check if the ID is local or global */
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        $$.type = symb->symb_type;
         llamarFuncion(yyout, $1.lexeme, symb->num_param);
         fprintf(yyout, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n");
     }
 ;
 
+exp_fn: exp {
+    operandoEnPilaAArgumento(yyout, $1.is_address);
+}
+
 lista_expresiones:
-    exp resto_lista_expresiones {
-        operandoEnPilaAArgumento(yyout, $1.is_address);
-        fprintf(yyout, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n");
-    }
+    exp_fn resto_lista_expresiones {fprintf(yyout, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n");}
 |   %empty { fprintf(yyout, ";R90:\t<lista_expresiones> ::=\n"); }
 ;
 
 resto_lista_expresiones:
-    TOK_COMA exp resto_lista_expresiones { fprintf(yyout, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n"); }
+    TOK_COMA exp_fn resto_lista_expresiones { fprintf(yyout, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n"); }
 |   %empty { fprintf(yyout, ";R92:\t<resto_lista_expresiones> ::=\n"); }
 ;
 

@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall
-MINI = mini mini2 mini3 mini4 mini5 mini6 factorial condicionales vectores fibonacci
+MINI = mini mini2 mini3 mini4 mini5 mini6 factorial condicionales vectores fibonacci funciones_vectores funciones
 EXE = alfa $(MINI)
 
 all: $(EXE)
