@@ -46,4 +46,6 @@ void hash_tb_com_dump(hash_tb_com *ht, Symbol **list);
 
 void _symbol_delete(Symbol *symb);
 
+void hash_tb_com_update(hash_tb_com *tb, char *key, Symbol *new);
+
 #endif /* HASH_TABLE_COM_H */

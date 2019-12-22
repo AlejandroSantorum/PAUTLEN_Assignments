@@ -19,7 +19,9 @@ int symb_tb_com_isKey(symbol_tb_com *symb_tb, char *key);
 
 Symbol * symb_tb_com_search(symbol_tb_com *symb_tb, char *key, int *is_local);
 
+void symb_tb_com_update(symbol_tb_com *symb_tb, char *key, Symbol *new);
+
 Symbol ** symb_tb_com_get_list(symbol_tb_com *symb_tb, int *size, int scope);
 
-
+int symb_tb_com_print(symbol_tb_com *symb_tb);
 #endif /* SYMBOL_TABLE_H */

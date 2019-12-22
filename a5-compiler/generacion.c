@@ -323,14 +323,17 @@ void retornarFuncion(FILE * fd_asm, int es_variable){
 
 void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros){
     int d_ebp;
-    d_ebp = 4*(1 + (num_total_parametros - pos_parametro));
+    // d_ebp = 4*(1 + (num_total_parametros - pos_parametro)); TODO: Comprobar por que ha cambiado la indexacion
+    d_ebp = 4*(num_total_parametros - pos_parametro);
     fprintf(fpasm, "lea eax, [ebp + %d]\n", d_ebp);
     fprintf(fpasm, "push dword eax\n");
 }
 
 void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
+    fprintf(fpasm, "; escribirVaraibleLocal: %d\n", posicion_variable_local);
     int d_ebp;
-    d_ebp = 4*posicion_variable_local;
+    // d_ebp = 4*posicion_variable_local; TODO: Comprobar por que ha cambiado la indexacion
+    d_ebp = 4*(1+posicion_variable_local);
     fprintf(fpasm, "lea eax, [ebp - %d]\n", d_ebp);
     fprintf(fpasm, "push dword eax\n");
 }

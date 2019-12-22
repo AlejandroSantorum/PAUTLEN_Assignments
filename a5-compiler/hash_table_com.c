@@ -321,3 +321,28 @@ void hash_tb_com_dump(hash_tb_com *ht, Symbol **list){
         }
     }
 }
+
+
+void _symbol_update(Symbol *new, Symbol *old){
+    old->symb_cat = new->symb_cat;
+    old->symb_type = new->symb_type;
+    old->var_cat = new->var_cat;
+    old->value = new->value;
+    old->len = new->len;
+    old->num_param = new->num_param;
+    old->pos = new->pos;
+    old->num_local_var = new->num_local_var;
+}
+
+
+void hash_tb_com_update(hash_tb_com *tb, char *key, Symbol *new){
+
+    int hashcode = _hash_code(key, tb->ht_sz);
+    ht_arr *harr = tb->ht_arr[hashcode];
+
+    for(int i=0; i<(harr->insert_idx); i++){
+        if(!strcmp(harr->symb_arr[i]->id, key)){
+            _symbol_update(new, harr->symb_arr[i]);
+        }
+    }
+}
