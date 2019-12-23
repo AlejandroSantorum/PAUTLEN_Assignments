@@ -9,22 +9,17 @@ main
 
     x = 1;
 	y = 3;
-	
+
 	resultado = suma (x,y);
 	printf resultado;
-	
+
 	resultado = suma (x,1);
 	printf resultado;
-	
+
 	resultado = suma (10,y);
 	printf resultado;
 
 	resultado = suma (3,5);
-	printf resultado;	
-	
+	printf resultado;
+
 }
-
-
-
-
-

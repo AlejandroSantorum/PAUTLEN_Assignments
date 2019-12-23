@@ -175,8 +175,11 @@ Symbol * symb_tb_com_search(symbol_tb_com *symb_tb, char *key, int *is_local){
     if(symb_tb->current_local_tb>=0){
         for(int i=symb_tb->current_local_tb; i>=0; i--){
             /* If the key is found in any local domain, it's no needed to keep searching */
-            *is_local = 1;
-            return hash_tb_com_get(symb_tb->local[i], key);
+            Symbol *ret=NULL;
+            if ((ret = hash_tb_com_get(symb_tb->local[i], key))){
+                *is_local = 1;
+                return ret;
+            }
         }
     }
     /* If local search fails, we must search in global table */

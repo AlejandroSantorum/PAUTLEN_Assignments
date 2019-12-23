@@ -1,0 +1,14 @@
+main {
+    int x, y;
+    function int resta(int x; int y){
+        return x-y;
+    }
+
+    function int suma3(int x; int y; int z){
+        return x+y+z;
+    }
+
+    x = resta(5, 4);
+    y = suma3(3, 2, 1);
+    printf resta(y, x);
+}

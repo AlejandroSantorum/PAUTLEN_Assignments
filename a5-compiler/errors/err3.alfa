@@ -1,0 +1,5 @@
+main {
+    boolean x, y;
+
+    x = x + y; // Operacion aritmetica con boolean
+}

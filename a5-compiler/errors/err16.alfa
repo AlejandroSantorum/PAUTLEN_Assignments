@@ -1,0 +1,11 @@
+main {
+    int x;
+
+    function int foo (int bar){
+        array int[2] vec;
+
+        return bar+1;
+    }
+
+    printf foo(2);
+}

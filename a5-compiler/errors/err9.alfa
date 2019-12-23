@@ -1,0 +1,7 @@
+main {
+    int x;
+    boolean y;
+
+    y = 0;
+    x = y; // Asignacion incompatible
+}

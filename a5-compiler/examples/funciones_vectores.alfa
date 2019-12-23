@@ -10,11 +10,11 @@ main
 		return a;
 	}
 
-	vector[0] =  true;
+	vector[0] = false;
 	vector[1] = false;
 	vector[2] = false;
 
-	resultado = or (vector[0], vector [1], vector [2]);
+	resultado = or(vector[0], vector[1], vector[2]);
 	printf resultado;
 
 }

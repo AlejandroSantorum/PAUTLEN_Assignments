@@ -1,0 +1,9 @@
+main {
+    int x;
+
+    x = 4;
+
+    while (x) { // Bucle con condicion de tipo int
+        print x;
+    }
+}

@@ -22,6 +22,9 @@ int vector_size = 0;
 int label = 1;
 int active_func = 0; /* Flag that indicates if a function declaration is being processed */
 int func_ret = 0; /* Flag that indicates if the current function has return statement */
+int func_body = 0;
+int main_declaration = 0;
+int param_list=0;
 
 symbol_tb_com *symb_tb=NULL;
 
@@ -91,6 +94,8 @@ symbol_tb_com *symb_tb=NULL;
 %type <attributes> fn_declaration
 %type <attributes> fn_name
 %type <attributes> exp_fn
+%type <attributes> lista_expresiones
+%type <attributes> resto_lista_expresiones
 
 %left TOK_IGUAL TOK_MENORIGUAL TOK_MENOR TOK_MAYORIGUAL TOK_MAYOR TOK_DISTINTO
 %left TOK_AND TOK_OR
@@ -109,6 +114,7 @@ programa:
 
 init_sbtb: %empty {
     symb_tb = symb_tb_com_create();
+    main_declaration = 1;
 }
 
 init_assembly: %empty {
@@ -120,10 +126,11 @@ init_assembly: %empty {
     list = symb_tb_com_get_list(symb_tb, &sz ,GLOBAL);
     for (size_t i = 0; i < sz; i++) {
         symb = list[i];
+        int len = symb->len;
         if (symb->symb_type == INTEGER) {
-            declarar_variable(yyout, symb->id, ENTERO, 1);
+            declarar_variable(yyout, symb->id, ENTERO, len);
         } else {
-            declarar_variable(yyout, symb->id, BOOLEANO, 1);
+            declarar_variable(yyout, symb->id, BOOLEANO, len);
         }
         _symbol_delete(symb);
     }
@@ -132,7 +139,7 @@ init_assembly: %empty {
 }
 
 init_main: %empty {
-    fprintf(yyout, ";DEBUG: Writing beggining of main\n");
+    main_declaration = 0;
     escribir_inicio_main(yyout);
 }
 
@@ -175,18 +182,8 @@ tipo:
 
 clase_vector:
     TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETEDERECHO {
-        vector_size = $4.int_value;
-        if(vector_size <= 0){
-            // printf("****Error semantico en lin %ld: El tamanyo del vector excede los limites permitidos (1,64).\n", nlines);
-            /* TODO : Comprobar que el error devuelto es el correto */
-            return -1;
-        }
-        if (vector_size > MAX_VECTOR_SIZE){
-            // printf("****Error semantico en lin %ld: El tamanyo del vector excede los limites permitidos (1,64).\n", nlines);
-            /* TODO : Comprobar que el error devuelto es el correto */
-            return -1;
-        }
         $$.int_value = $4.int_value;
+        vector_size = $4.int_value;
         fprintf(yyout, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ]\n");
     }
 ;
@@ -202,21 +199,14 @@ funciones:
 ;
 
 funcion: fn_declaration sentencias TOK_LLAVEDERECHA {
-    /******************* PSEUDO ***************************************/
-    //COMPROBACIONES SEMANTICAS
-    //ERROR SI LA FUNCION NO TIENE SENTENCIA DE RETORNO
-    //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $1.nombre
-    //CIERRE DE AMBITO, ETC
-    //  simbolo->num_param = num_parametros;
-    /************************************************************************/
     if(func_ret == 0) {
-        // TODO : Comprobar error
         printf("****Error semantico en lin %ld: Funcion %s sin sentencia de retorno.\n", nlines, $1.lexeme);
         return -1;
     }
     num_parametros = 0;
     num_variables_locales = 0;
     func_ret = 0;
+    func_body = 0;
     // Close domain
     Symbol *symb=NULL;
     symb = (Symbol *) calloc(1, sizeof(Symbol));
@@ -228,21 +218,12 @@ funcion: fn_declaration sentencias TOK_LLAVEDERECHA {
 
     free(symb->id);
     free(symb);
+    fprintf(yyout, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n");
 };
 
 fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion {
-    /******************* PSEUDO ***************************************/
-    //COMPROBACIONES SEMANTICAS
-    //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $1.nombre
-    // simbolo->num_param = num_parametros;
-    // strcpy($$.nombre, $1.nombre);
-    // $$.tipo = $1.tipo;
-    //GENERACION DE CODIGO
-    // declararFuncion(out, $1.nombre, num_variables_locales_actual);
-    /*********************************************************************************/
     int is_local;
     Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
-    printf("NUMERO DE PARAMETROS: %d\n", num_parametros);
     symb->num_param = num_parametros;
     symb->num_local_var = num_variables_locales;
     symb_tb_com_update(symb_tb, symb->id, symb);
@@ -254,20 +235,8 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
 }
 
 fn_name : TOK_FUNCTION tipo TOK_IDENTIFICADOR {
-    /******************* PSEUDO ***************************************/
-    //COMPROBACIONES SEMANTICAS
-    //ERROR SI YA SE HA DECLARADO UNA FUNCION CON NOMBRE $3.nombre
-    // simbolo.identificador = $3.nombre;
-    // simbolo.cat_simbolo = FUNCION;
-    // simbolo.tipo = tipo_actual;
-    // $$.tipo = tipo_actual;
-    // strcpy($$.nombre, $3.nombre);
-
-    //ABRIR AMBITO EN LA TABLA DE SIMBOLOS CON IDENTIFICADOR $3.nombre
-    //RESETEAR VARIABLES QUE NECESITAMOS PARA PROCESAR LA FUNCION:
-    //posicion_variable_local, num_variables_locales, posicion_parametro, num_parametros
-    /*********************************************************************************/
     active_func = 1;
+    func_body = 1;
     func_ret = 0;
     int is_local;
     Symbol *symb = symb_tb_com_search(symb_tb, $3.lexeme, &is_local);
@@ -311,19 +280,9 @@ parametro_funcion:
 ;
 
 idpf: TOK_IDENTIFICADOR {
-    /******************* PSEUDO ***************************************/
-    //COMPROBACIONES SEMANTICAS PARA $1.nombre
-    //EN ESTE CASO SE MUESTRA ERROR SI EL NOMBRE DEL PARAMETRO YA SE HA UTILIZADO
-    // simbolo.identificador = $1.nombre;
-    // simbolo.cat_simbolo = PARAMETRO;
-    // simbolo.tipo = tipo_actual;
-    // simbolo.categoria = ESCALAR;
-    // simbolo.posicion = posicion_paremetro;
-    //DECLARAR SIMBOLO EN LA TABLA
-    /*********************************************************************************/
     int is_local;
     Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
-    if(symb){
+    if(symb && is_local){
         printf("****Error semantico en lin %ld: Declaracion duplicada.\n", nlines);
         return -1;
     }
@@ -335,7 +294,6 @@ idpf: TOK_IDENTIFICADOR {
 
     strcpy(insert_symb->id, $1.lexeme);
     insert_symb->symb_cat = PARAMETER;
-    //TODO: Cambiar esto si queremos implementar vectores como  parametros
     insert_symb->symb_type = SCALAR;
     insert_symb->symb_type = tipo_actual;
     insert_symb->pos = pos_parametro;
@@ -354,7 +312,9 @@ sentencias:
 ;
 
 sentencia:
-    sentencia_simple TOK_PUNTOYCOMA { fprintf(yyout, ";R32:\t<sentencia> ::= <sentencia_simple> ;\n"); }
+    sentencia_simple TOK_PUNTOYCOMA {
+        param_list = 0;
+        fprintf(yyout, ";R32:\t<sentencia> ::= <sentencia_simple> ;\n"); }
 |   bloque { fprintf(yyout, ";R33:\t<sentencia> ::= <bloque>\n"); }
 ;
 
@@ -362,7 +322,13 @@ sentencia_simple:
     asignacion { fprintf(yyout, ";R34:\t<sentencia_simple> ::= <asignacion>\n"); }
 |   lectura { fprintf(yyout, ";R35:\t<sentencia_simple> ::= <lectura>\n"); }
 |   escritura { fprintf(yyout, ";R36:\t<sentencia_simple> ::= <escritura>\n"); }
-|   retorno_funcion { fprintf(yyout, ";R38:\t<sentencia_simple> ::= <retorno_funcion>\n"); }
+|   retorno_funcion {
+        if (!func_body) {
+            printf("****Error semantico en lin %lu: Sentencia de retorno fuera del cuerpo de una función.\n", nlines);
+            return -1;
+        }
+        fprintf(yyout, ";R38:\t<sentencia_simple> ::= <retorno_funcion>\n");
+    }
 ;
 
 bloque:
@@ -380,14 +346,12 @@ asignacion:
             return -1;
         }
         if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR || symb->symb_type != $3.type){
-            printf("%d %d\n", symb->symb_type, $3.type);
             printf("****Error semantico en lin %lu: Asignacion incompatible.\n", nlines);
             return -1;
         }
 
         if(is_local){ /* Local variable */
             if(symb->symb_cat == PARAMETER){
-                printf("%d, %d PARAMETROS\n", symb->pos, num_parametros);
                 escribirParametro(yyout, symb->pos, num_parametros);
                 asignarDestinoEnPila(yyout, $3.is_address);
             } else {
@@ -401,20 +365,18 @@ asignacion:
     }
 |   elemento_vector TOK_ASIGNACION exp {
         if($1.type != $3.type) {
-            //printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
-            // TODO: Comprobar que el error devuelto es el correto
+            printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
             return -1;
         }
         int is_local;
-        Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local); /*TODO - comprobaciones y local*/
-        /* TODO : Comprobar que lo de abajo es correcto (escrito por Pablo Abajo) */
-        char buff[255];
-        sprintf(buff, "%d", $1.int_value);
-        escribir_operando(yyout, buff, 0);
-        escribir_elemento_vector(yyout, $1.lexeme, symb->len, $3.is_address); // TODO : Que es simbolo ??
-        fprintf(yyout, ";asignarDestinoEnPila --------------\n");
+        Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        if(!symb){
+            printf("****Error semantico en lin %lu: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+            return -1;
+        }
+        escribir_operando(yyout, $1.vector_index, $1.vector_index_is_address);
+        escribir_elemento_vector(yyout, $1.lexeme, symb->len, $3.is_address);
         asignarDestinoEnPila(yyout, $3.is_address);
-        /***************************************************/
         fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
     }
 ;
@@ -422,7 +384,6 @@ asignacion:
 elemento_vector:
     identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
         if($3.type != INTEGER){
-            // TODO : Comprobar error devuelto
             printf("****Error semantico en lin %ld: El indice en una operacion de indexacion tiene que ser de tipo entero.\n", nlines);
             return -1;
         }
@@ -430,24 +391,23 @@ elemento_vector:
         int is_local;
         Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
         if(!symb){
-            // TODO : Comprobar error devuelto
             printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
             return -1;
         }
         if(symb->symb_cat == FUNCTION){
-            // TODO : Comprobar error devuelto
-            printf("****Error semantico en lin %ld: Identificador no valido\n", nlines);
+            printf("****Error semantico en lin %ld: Intento de indexacion de una variable que no es de tipo vector.\n", nlines);
             return -1;
         }
         if(symb->var_cat != VECTOR){
-            // TODO: Comprobar error devuelto
             printf("****Error semantico en lin %ld: Intento de indexacion de una variable que no es de tipo vector.\n", nlines);
             return -1;
         }
 
         $$.type = symb->symb_type;
         $$.is_address = 1;
+        $$.vector_index_is_address = $3.is_address;
         $$.int_value = $3.int_value;
+        strcpy($$.vector_index, $3.lexeme);
         escribir_elemento_vector(yyout, $1.lexeme, symb->len, $3.is_address);
         fprintf(yyout, ";R48:\t<elemento_vector> ::= <identificador>\n");
     }
@@ -474,7 +434,8 @@ if_exp_sentencias:
 if_exp:
     TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA {
         if ($3.type != BOOLEAN) {
-            printf("****Error semantico en lin %lu: Condicional con condicion de tipo int.", nlines);
+            printf("****Error semantico en lin %lu: Condicional con condicion de tipo int.\n", nlines);
+            return -1;
         }
         $$.label = label++;
         ifthenelse_inicio(yyout, $3.is_address, $$.label);
@@ -497,7 +458,7 @@ while:
 while_exp:
     while exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA {
         if($2.type != BOOLEAN){
-            printf("****Error semantico en lin %lu: Bucle con condicion de tipo int.", nlines);
+            printf("****Error semantico en lin %lu: Bucle con condicion de tipo int.\n", nlines);
             return -1;
         }
         while_exp_pila(yyout, $2.is_address, $$.label);
@@ -510,11 +471,11 @@ lectura:
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $2.lexeme, &is_local);
         if(!symb){
-            /* TODO : Error -> variable no declarada */
+            printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $2.lexeme);
             return -1;
         }
         if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR){
-            /* TODO : Error -> asignacion incompatible */
+            printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
             return -1;
         }
 
@@ -525,7 +486,6 @@ lectura:
 
 escritura:
     TOK_PRINTF exp {
-        // escribir_operando(yyout, $2.lexeme, $2.is_address); XXX: Ya lo está haciendo TOK_IDENTIFICADOR en <exp>
         escribir(yyout, $2.is_address, $2.type);
         fprintf(yyout, ";R56:\t<escritura> ::= printf <exp>\n");
     }
@@ -548,6 +508,7 @@ exp:
         $$.type = INTEGER;
         $$.is_address = 0;
         $$.int_value = $1.int_value + $3.int_value;
+        // escribir_operando(yyout, $$.lexeme, $1.is_address);
         sumar(yyout, $1.is_address, $3.is_address);
         fprintf(yyout, ";R72:\t<exp> ::= <exp> + <exp>\n");
     }
@@ -637,11 +598,11 @@ exp:
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
         if(!symb){
-            /* TODO : Error -> variable no declarada */
+            printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
             return -1;
         }
         if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR){
-            /* TODO : Error -> asignacion incompatible */
+            printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
             return -1;
         }
 
@@ -650,8 +611,6 @@ exp:
 
         if(is_local){ /* Local variable */
             if(symb->symb_cat == PARAMETER){
-                printf("PARAMETROS: %d, %d\n", symb->pos, num_parametros);
-                // TODO: Quizá el último parámetro lo tenemos que sacar del simbolo de la tabla
                 escribirParametro(yyout, symb->pos, num_parametros);
             } else {
                 escribirVariableLocal(yyout, symb->pos);
@@ -664,10 +623,9 @@ exp:
     }
 |   constante {
         $$.type = $1.type;
-        $$.is_address = $1.is_address;
-        char buff[20];
-        sprintf(buff, "%d", $1.int_value);
-        escribir_operando(yyout, buff, $1.is_address); /*TODO: CODIFICAR TRUE Y FALSE ADECUADAMENTE O HACER UN IF*/
+        $$.is_address = 0;
+        sprintf($$.lexeme, "%d", $1.int_value);
+        escribir_operando(yyout, $$.lexeme, $1.is_address);
         fprintf(yyout, ";R81:\t<exp> ::= <constante>\n");
     }
 |   TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO {
@@ -684,11 +642,24 @@ exp:
     }
 |   elemento_vector { fprintf(yyout, ";R85:\t<exp> ::= <elemento_vector>\n"); }
 |   identificador TOK_PARENTESISIZQUIERDO lista_expresiones TOK_PARENTESISDERECHO {
-        int is_local = -1; /* To check if the ID is local or global */
+        int is_local = -1;
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        if(!symb){
+            printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+            return -1;
+        }
+        if (symb->num_param != $3.int_value){
+            printf("****Error semantico en lin %ld: Numero incorrecto de parametros en llamada a funcion.\n", nlines);
+            return -1;
+        }
         $$.type = symb->symb_type;
         llamarFuncion(yyout, $1.lexeme, symb->num_param);
+        param_list++;
+        if (param_list > 1) {
+            printf("****Error semantico en lin %ld: No esta permitido el uso de llamadas a funciones como parametros de otras funciones.\n", nlines);
+            return -1;
+        }
         fprintf(yyout, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n");
     }
 ;
@@ -698,13 +669,13 @@ exp_fn: exp {
 }
 
 lista_expresiones:
-    exp_fn resto_lista_expresiones {fprintf(yyout, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n");}
-|   %empty { fprintf(yyout, ";R90:\t<lista_expresiones> ::=\n"); }
+    exp_fn resto_lista_expresiones {$$.int_value = $2.int_value+1; fprintf(yyout, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n");}
+|   %empty {fprintf(yyout, ";R90:\t<lista_expresiones> ::=\n"); }
 ;
 
 resto_lista_expresiones:
-    TOK_COMA exp_fn resto_lista_expresiones { fprintf(yyout, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n"); }
-|   %empty { fprintf(yyout, ";R92:\t<resto_lista_expresiones> ::=\n"); }
+    TOK_COMA exp_fn resto_lista_expresiones {$$.int_value = $3.int_value+1; fprintf(yyout, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n"); }
+|   %empty { $$.int_value = 0; fprintf(yyout, ";R92:\t<resto_lista_expresiones> ::=\n"); }
 ;
 
 comparacion:
@@ -805,22 +776,33 @@ constante_entera: TOK_CONSTANTE_ENTERA {
     $$.is_address = 0;
     $$.int_value = $1.int_value;
     fprintf(yyout, ";R104:\t<constante_entera> ::= TOK_CONSTANTE_ENTERA\n");
-    /* TODO : Meter en la pila la constante -> ¿ operandoEnPilaAArgumento(yyout, $$.is_address) ? */
 }
 ;
 
 identificador: TOK_IDENTIFICADOR {
-    int is_local = -1; /* To check if the ID is local or global */
+    int is_local = -1;
     Symbol *symb=NULL;
     symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
 
-    if((symb && is_local && !(symb->symb_cat == FUNCTION))) {
-        printf("****Error semantico en lin %lu: Declaracion duplicada.\n", nlines);
-        return -1; /* constant ERROR ? */
+    if (main_declaration){
+        if(symb && !(symb->symb_cat == FUNCTION)) {
+            printf("****Error semantico en lin %lu: Declaracion duplicada.\n", nlines);
+            return -1;
+        }
+
+        if (clase_actual == VECTOR) {
+            if(vector_size <= 0){
+                printf("****Error semantico en lin %ld: El tamanyo del vector %s excede los limites permitidos (1,64).\n", nlines, $1.lexeme);
+                return -1;
+            }
+            if (vector_size > MAX_VECTOR_SIZE){
+                printf("****Error semantico en lin %ld: El tamanyo del vector %s excede los limites permitidos (1,64).\n", nlines, $1.lexeme);
+                return -1;
+            }
+        }
     }
-    /* Creating symbol */
+
     symb = (Symbol *) calloc(1, sizeof(Symbol));
-    /* TODO : Error check ? */
     symb->id = (char *) calloc(strlen($1.lexeme)+1, sizeof(char));
 
     strcpy(symb->id, $1.lexeme);
@@ -829,8 +811,13 @@ identificador: TOK_IDENTIFICADOR {
     symb->var_cat = clase_actual;
 
     if(clase_actual == VECTOR) {
+
+        if (func_body) {
+            printf("****Error semantico en lin %ld: Variable local de tipo no escalar.\n", nlines);
+            return -1;
+        }
         symb->len = vector_size;
-        vector_size = 0; /* TODO: Esto hay que resetearlo? */
+        vector_size = 0;
     } else {
         symb->len = 1;
     }
@@ -838,14 +825,6 @@ identificador: TOK_IDENTIFICADOR {
     if (active_func){
         symb->pos = num_variables_locales++;
     }
-    /* TODO : Comprobar si es funcion */
-    /* TODO :
-    symb->value = 0;
-    symb->len = 0;
-    symb->num_param = 0;
-    symb->pos = 0;
-    symb->num_local_var = 0;
-    */
     symb_tb_com_insert(symb_tb, symb);
 
     fprintf(yyout, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");

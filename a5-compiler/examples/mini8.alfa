@@ -1,0 +1,12 @@
+main {
+    int i;
+    array int[2] vector;
+
+    i = 0;
+    while ((i < 2)) {
+        vector[i] = i;
+        printf vector[i];
+        i = i + 1;
+    }
+
+}

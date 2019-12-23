@@ -1,0 +1,8 @@
+main {
+    int x;
+    function int suma (int x; int y) {
+        return x + y;
+    }
+
+    x = suma(1, 2, 3); // Numero de parametros incorrecto en llamada a funcion
+}

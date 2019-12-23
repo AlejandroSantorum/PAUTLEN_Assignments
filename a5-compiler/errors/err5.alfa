@@ -1,0 +1,5 @@
+main {
+    boolean x, y;
+
+    x = (y < x); \\Operacion logica con operandos int
+}

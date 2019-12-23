@@ -1,0 +1,5 @@
+main {
+    int x;
+
+    return x; // Sentencia return fuera del cuerpo de una funcion
+}

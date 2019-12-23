@@ -1,6 +1,7 @@
 CC=gcc
 CFLAGS=-Wall
-MINI = mini mini2 mini3 mini4 mini5 mini6 factorial condicionales vectores fibonacci funciones_vectores funciones
+MINI = mini mini2 mini3 mini4 mini5 mini6 mini7 mini8 mini9 factorial condicionales vectores fibonacci funciones_vectores funciones
+ERR = err1 err2 err3 err4 err5 err6 err7 err8 err9 err10 err11 err12 err13 err14 err15 err16
 EXE = alfa $(MINI)
 
 all: $(EXE)
@@ -32,14 +33,21 @@ y.tab.c: alfa.y
 y.tab.h: alfa.y
 	bison -d -y -v $^
 
-${MINI}: %: alfa %.alfa
-	./alfa $@.alfa $@.asm
-	nasm -g -o $@.o -f elf32 $@.asm
-	gcc -m32 -o $@ $@.o ../alfalib.o
+${MINI}: %: alfa examples/%.alfa
+	./alfa examples/$@.alfa examples/$@.asm
+	nasm -g -o examples/$@.o -f elf32 examples/$@.asm
+	gcc -m32 -o examples/$@ examples/$@.o ../alfalib.o
+
+${ERR}: %: alfa errors/%.alfa
+	./alfa errors/$@.alfa errors/$@.asm
+	nasm -g -o errors/$@.o -f elf32 errors/$@.asm
+	gcc -m32 -o errors/$@ errors/$@.o ../alfalib.o
 
 alfa.c:
 	@echo "Empty" > /dev/null
 
 .PHONY: clean
 clean:
-	rm -rf *.o alfa lex.yy.* y.tab.* y.output $(EXE)
+	rm -rf *.o alfa lex.yy.* y.tab.* y.output *.asm
+	cd errors && $(MAKE) clean
+	cd examples && $(MAKE) clean

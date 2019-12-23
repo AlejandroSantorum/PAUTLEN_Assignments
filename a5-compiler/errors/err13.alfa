@@ -1,0 +1,9 @@
+main {
+    int x;
+    function int suma (int x; int y) {
+        x = 1;
+        y = 2;
+    } // Funcion sin sentencia de retorno
+
+    x = suma(2, 4);
+}

@@ -1,0 +1,6 @@
+main {
+    array int[3] x;
+    boolean y;
+    y = true;
+    x[y] = 69; // Intento de indexacion con variable de tipo != entero
+}
