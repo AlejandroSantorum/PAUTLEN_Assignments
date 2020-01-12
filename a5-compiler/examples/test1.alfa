@@ -1,0 +1,16 @@
+main
+{
+    int x;
+    array int[4] v;
+
+    function int suma (int x; int y) {
+        return x + y;
+    }
+
+    x=3;
+    init v {x;suma(x, 3);x/3};
+    printf v[0];
+    printf v[1];
+    printf v[2];
+    printf v[3];
+}

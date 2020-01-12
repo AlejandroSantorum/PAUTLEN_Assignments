@@ -2,6 +2,7 @@ CC=gcc
 CFLAGS=-Wall -g
 MINI = mini mini2 mini3 mini4 mini5 mini6 mini7 mini8 mini9 factorial condicionales vectores fibonacci funciones_vectores funciones
 ERR = err1 err2 err3 err4 err5 err6 err7 err8 err9 err10 err11 err12 err13 err14 err15 err16
+TEST = test0 test1
 EXE = alfa $(MINI)
 
 all: $(EXE)
@@ -33,10 +34,15 @@ y.tab.c: alfa.y
 y.tab.h: alfa.y
 	bison -d -y -v $^
 
-${MINI}: %: alfa examples/%.alfa
+${MINI} ${TEST}: %: alfa examples/%.alfa
 	./alfa examples/$@.alfa examples/$@.asm
 	nasm -g -o examples/$@.o -f elf32 examples/$@.asm
 	gcc -m32 -o examples/$@ examples/$@.o ../alfalib.o
+
+# ${TEST}: %: alfa examples/%.alfa
+# 	./alfa examples/$@.alfa examples/$@.asm
+# 	nasm -g -o examples/$@.o -f elf32 examples/$@.asm
+# 	gcc -m32 -o examples/$@ examples/$@.o ../alfalib.o
 
 ${ERR}: %: alfa errors/%.alfa
 	./alfa errors/$@.alfa errors/$@.asm

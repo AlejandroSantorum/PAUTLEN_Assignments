@@ -26,6 +26,12 @@ int func_body = 0;
 int main_declaration = 0;
 int param_list=0;
 
+char init_lexeme[MAX_LONG_ID+1];
+char vec_idx[MAX_LONG_ID+1];
+int init_type;
+int init_idx;
+int init_size;
+
 symbol_tb_com *symb_tb=NULL;
 
 %}
@@ -72,6 +78,7 @@ symbol_tb_com *symb_tb=NULL;
 %token TOK_MAYOR
 %token TOK_TRUE
 %token TOK_FALSE
+%token TOK_INIT
 
 %token <attributes> TOK_CONSTANTE_ENTERA
 %token <attributes> TOK_IDENTIFICADOR
@@ -96,6 +103,9 @@ symbol_tb_com *symb_tb=NULL;
 %type <attributes> exp_fn
 %type <attributes> lista_expresiones
 %type <attributes> resto_lista_expresiones
+%type <attributes> exp_init
+%type <attributes> lista_init
+%type <attributes> resto_lista_init
 
 %left TOK_IGUAL TOK_MENORIGUAL TOK_MENOR TOK_MAYORIGUAL TOK_MAYOR TOK_DISTINTO
 %left TOK_AND TOK_OR
@@ -327,6 +337,7 @@ sentencia_simple:
     asignacion { fprintf(yyout, ";R34:\t<sentencia_simple> ::= <asignacion>\n"); }
 |   lectura { fprintf(yyout, ";R35:\t<sentencia_simple> ::= <lectura>\n"); }
 |   escritura { fprintf(yyout, ";R36:\t<sentencia_simple> ::= <escritura>\n"); }
+|   init { fprintf(yyout, ";RT30:\t<sentencia_simple> ::= <init>\n"); }
 |   retorno_funcion {
         if (!func_body) {
             printf("****Error semantico en lin %lu: Sentencia de retorno fuera del cuerpo de una función.\n", nlines);
@@ -423,6 +434,76 @@ elemento_vector:
         _symbol_delete(symb);
     }
 ;
+
+id_init: TOK_IDENTIFICADOR {
+    int is_local = -1;
+    Symbol *symb=NULL;
+    symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if (!symb) {
+        printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+        _symbol_delete(symb);
+        return -1;
+    }
+    if (symb->var_cat != VECTOR){
+        printf("****Error semantico en lin %ld: Intento de inicializacion de una variable que no es de tipo vector.\n", nlines);
+        _symbol_delete(symb);
+        return -1;
+    }
+    strcpy(init_lexeme, symb->id);
+    init_type = symb->symb_type;
+    init_size = symb->len;
+    init_idx = 0;
+    _symbol_delete(symb);
+}
+
+lista_init:
+    exp_init resto_lista_init {$$.int_value = $2.int_value+1; fprintf(yyout, ";RT89:\t<lista_init> ::= <exp_init> <resto_lista_init>\n");}
+
+resto_lista_init:
+    TOK_PUNTOYCOMA exp_init resto_lista_init {$$.int_value = $3.int_value+1; fprintf(yyout, ";RT91:\t<resto_lista_init> ::= ; <exp_init> <resto_lista_init>\n"); }
+|   %empty { $$.int_value = 0; fprintf(yyout, ";R92:\t<resto_lista_init> ::=\n"); }
+;
+
+exp_init: exp {
+    int is_local = -1;
+    Symbol *symb=NULL;
+    symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if (!symb && $1.is_address) {
+        printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+        _symbol_delete(symb);
+        return -1;
+    }
+    _symbol_delete(symb);
+
+    if($1.type != init_type) {
+        printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
+        return -1;
+    }
+    sprintf(vec_idx, "%d", init_idx);
+    escribir_operando(yyout, vec_idx, 0);
+    escribir_elemento_vector(yyout, init_lexeme, init_size, 0);
+    asignarDestinoEnPila(yyout, $1.is_address);
+    init_idx++;
+}
+
+init: TOK_INIT id_init TOK_LLAVEIZQUIERDA lista_init TOK_LLAVEDERECHA {
+    if (init_idx > init_size){
+        printf("****Error semantico en lin %ld: Lista de inicialización de longitud incorrecta.\n", nlines);
+        return -1;
+    }
+    while(init_idx < init_size){
+        escribir_operando(yyout, "0", 0);
+        sprintf(vec_idx, "%d", init_idx);
+        escribir_operando(yyout, vec_idx, 0);
+        escribir_elemento_vector(yyout, init_lexeme, init_size, 0);
+        asignarDestinoEnPila(yyout, 0);
+        init_idx++;
+    }
+    fprintf(yyout, ";RT:\t<init> ::= init { <lista_init> }\n");
+}
+
+
+
 
 condicional:
     if_exp_sentencias {

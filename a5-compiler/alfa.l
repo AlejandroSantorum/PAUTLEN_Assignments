@@ -31,6 +31,7 @@ while { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_WHILE; 
 scanf { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_SCANF; }
 printf { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_PRINTF; }
 return { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_RETURN; }
+init { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_INIT; }
 ";" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_PUNTOYCOMA; }
 "," { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_COMA; }
 "(" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_PARENTESISIZQUIERDO; }
