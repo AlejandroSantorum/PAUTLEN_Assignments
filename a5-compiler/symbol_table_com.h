@@ -6,6 +6,8 @@
 
 #define MAX_LOCAL_TB 1024
 #define GLOBAL 0
+#define LOCAL 1
+#define ALL 2
 
 typedef struct _symbol_tb_com symbol_tb_com;
 
@@ -19,7 +21,7 @@ int symb_tb_com_isKey(symbol_tb_com *symb_tb, char *key);
 
 Symbol * symb_tb_com_search(symbol_tb_com *symb_tb, char *key, int *is_local);
 
-void symb_tb_com_update(symbol_tb_com *symb_tb, char *key, Symbol *new);
+void symb_tb_com_update(symbol_tb_com *symb_tb, char *key, Symbol *new, int scope);
 
 Symbol ** symb_tb_com_get_list(symbol_tb_com *symb_tb, int *size, int scope);
 

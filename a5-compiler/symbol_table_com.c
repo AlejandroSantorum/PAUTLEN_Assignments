@@ -214,11 +214,17 @@ int symb_tb_com_print(symbol_tb_com *symb_tb){
     return count;
 }
 
-void symb_tb_com_update(symbol_tb_com *symb_tb, char *key, Symbol *new){
-    hash_tb_com_update(symb_tb->global, key, new);
-    for (size_t i = 0; i < MAX_LOCAL_TB; i++) {
-        if (symb_tb->local[i]){
-            hash_tb_com_update(symb_tb->local[i], key, new);
+void symb_tb_com_update(symbol_tb_com *symb_tb, char *key, Symbol *new, int scope){
+    if (scope == GLOBAL){
+        hash_tb_com_update(symb_tb->global, key, new);
+    } else if ( scope == LOCAL ) {
+        hash_tb_com_update(symb_tb->local[symb_tb->current_local_tb], key, new);
+    } else {
+        hash_tb_com_update(symb_tb->global, key, new);
+        for (size_t i = 0; i < MAX_LOCAL_TB; i++) {
+            if (symb_tb->local[i]){
+                hash_tb_com_update(symb_tb->local[i], key, new);
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ int pos_variable_local;
 int num_variables_locales;
 int num_parametros;
 int pos_parametro;
+int global_declaration=1;
 
 int vector_size = 0;
 int label = 1;
@@ -135,6 +136,7 @@ init_assembly: %empty {
         }
         _symbol_delete(symb);
     }
+    global_declaration = 0;
     free(list);
     escribir_segmento_codigo(yyout);
 }
@@ -142,6 +144,21 @@ init_assembly: %empty {
 init_main: %empty {
     main_declaration = 0;
     escribir_inicio_main(yyout);
+    char op[255];
+    Symbol ** list;
+    Symbol *symb;
+    int sz;
+    list = symb_tb_com_get_list(symb_tb, &sz ,GLOBAL);
+    for (size_t i = 0; i < sz; i++) {
+        symb = list[i];
+        if (symb->value){
+            sprintf(op, "%d", symb->value);
+            escribir_operando(yyout, op, 0);
+            asignar(yyout, symb->id, 0);
+        }
+        _symbol_delete(symb);
+    }
+    free(list);
 }
 
 declaraciones:
@@ -192,7 +209,34 @@ clase_vector:
 identificadores:
     identificador { fprintf(yyout, ";R18:\t<identificadores> ::= <identificador>\n"); }
 |   identificador TOK_COMA identificadores { fprintf(yyout, ";R19:\t<identificadores> ::= <identificador> , <identificadores>\n"); }
+|   identasignacion { fprintf(yyout, ";RT18:\t<identificadore> ::= <identasignacion>\n"); }
+|   identasignacion TOK_COMA identificadores { fprintf(yyout, ";RT19:\t<identificadores> ::= <identasignacion> , <identificadores>\n"); }
 ;
+
+identasignacion: identificador TOK_ASIGNACION constante {
+    int is_local;
+    Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if(!symb){
+        printf("****Error semantico en lin %lu: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+        return -1;
+    }
+    if (!(is_local ^ global_declaration)){
+        printf("****Error semantico en lin %lu: Declaración en ámbito erróneo de la variable (%s).\n", nlines, $1.lexeme);
+        return -1;
+    }
+    if (symb->symb_type != $3.type){
+        printf("****Error semantico en lin %lu: Asignacion incompatible.\n", nlines);
+        _symbol_delete(symb);
+        return -1;
+    }
+    symb->value = $3.int_value;
+    if (global_declaration){
+        symb_tb_com_update(symb_tb, symb->id, symb, GLOBAL);
+    } else {
+        symb_tb_com_update(symb_tb, symb->id, symb, LOCAL);
+    }
+    _symbol_delete(symb);
+};
 
 funciones:
     funcion funciones { fprintf(yyout, ";R20:\t<funciones> ::= <funcion> <funciones>\n"); }
@@ -226,13 +270,26 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
     Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
     symb->num_param = num_parametros;
     symb->num_local_var = num_variables_locales;
-    symb_tb_com_update(symb_tb, symb->id, symb);
+    symb_tb_com_update(symb_tb, symb->id, symb, ALL);
     symb->symb_type = $1.type;
     strcpy($$.lexeme, $1.lexeme);
     $$.type = $1.type;
     declararFuncion(yyout, $1.lexeme, num_variables_locales);
     active_func = 0;
     _symbol_delete(symb);
+
+    Symbol ** list;
+    int sz;
+    char op[255];
+    list = symb_tb_com_get_list(symb_tb, &sz , LOCAL);
+    for (size_t i = 0; i < sz; i++) {
+        symb = list[i];
+        sprintf(op, "%d", symb->value);
+        escribir_operando(yyout, op, 0);
+        escribirVariableLocal(yyout, symb->pos);
+        asignarDestinoEnPila(yyout, 0);
+        _symbol_delete(symb);
+    }
 }
 
 fn_name : TOK_FUNCTION tipo TOK_IDENTIFICADOR {
