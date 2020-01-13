@@ -72,6 +72,11 @@ symbol_tb_com *symb_tb=NULL;
 %token TOK_MAYOR
 %token TOK_TRUE
 %token TOK_FALSE
+%token TOK_COMPARE
+%token TOK_WITH
+%token TOK_LESS
+%token TOK_GREATER
+%token TOK_EQUAL
 
 %token <attributes> TOK_CONSTANTE_ENTERA
 %token <attributes> TOK_IDENTIFICADOR
@@ -96,6 +101,10 @@ symbol_tb_com *symb_tb=NULL;
 %type <attributes> exp_fn
 %type <attributes> lista_expresiones
 %type <attributes> resto_lista_expresiones
+%type <attributes> compare_with
+%type <attributes> less
+%type <attributes> less_equal
+%type <attributes> compare_less_equal_greater
 
 %left TOK_IGUAL TOK_MENORIGUAL TOK_MENOR TOK_MAYORIGUAL TOK_MAYOR TOK_DISTINTO
 %left TOK_AND TOK_OR
@@ -424,6 +433,42 @@ elemento_vector:
     }
 ;
 
+compare_with: TOK_COMPARE exp TOK_WITH exp {
+    if ($2.type != INTEGER || $4.type != INTEGER){
+        printf("**** Error semántico en lin %ld: se esperaba una expresión de tipo entero.\n", nlines);
+        return -1;
+    }
+    fprintf(yyout, "pop dword edx\n");
+    fprintf(yyout, "pop dword ecx\n");
+    fprintf(yyout, "push dword ecx\n");
+    fprintf(yyout, "push dword edx\n");
+    mayor(yyout, $2.is_address, $4.is_address, label++);
+    fprintf(yyout, "push dword ecx\n");
+    fprintf(yyout, "push dword edx\n");
+    igual(yyout, $2.is_address, $4.is_address, label++);
+    fprintf(yyout, "push dword ecx\n");
+    fprintf(yyout, "push dword edx\n");
+    menor(yyout, $2.is_address, $4.is_address, label++);
+    $$.label = label++;
+    ifthen_inicio(yyout, 0, $$.label);
+}
+
+less: compare_with TOK_LLAVEIZQUIERDA TOK_LESS sentencias {
+    ifthen_fin(yyout, $1.label);
+    $$.label = label++;
+    ifthen_inicio(yyout, 0, $$.label);
+}
+
+less_equal: less TOK_EQUAL sentencias {
+    ifthen_fin(yyout, $1.label);
+    $$.label = label++;
+    ifthen_inicio(yyout, 0, $$.label);
+}
+
+compare_less_equal_greater: less_equal TOK_GREATER sentencias {
+    ifthen_fin(yyout, $1.label);
+}
+
 condicional:
     if_exp_sentencias {
         ifthenelse_fin(yyout, $1.label);
@@ -432,6 +477,9 @@ condicional:
 |   if_exp_sentencias TOK_ELSE TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {
         ifthenelse_fin(yyout, $1.label);
         fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> }\n");
+    }
+|   compare_less_equal_greater TOK_LLAVEDERECHA {
+        fprintf(yyout, ";R50:\t<condicional> ::= compare <exp> with <exp> { less <sentencias> equal <sentencias> greater <sentencias> }\n");
     }
 ;
 
@@ -853,7 +901,6 @@ identificador: TOK_IDENTIFICADOR {
     fprintf(yyout, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
 }
 ;
-
 %%
 
 void yyerror(const char * s) {
