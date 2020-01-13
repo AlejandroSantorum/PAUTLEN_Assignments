@@ -390,7 +390,7 @@ asignacion:
 ;
 
 elemento_vector:
-    identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
+    TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
         if($3.type != INTEGER){
             printf("****Error semantico en lin %ld: El indice en una operacion de indexacion tiene que ser de tipo entero.\n", nlines);
             return -1;
