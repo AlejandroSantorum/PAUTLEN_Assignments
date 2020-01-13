@@ -10,6 +10,7 @@ void escribir_subseccion_data(FILE* fpasm){
     fprintf(fpasm, "segment .data\n");
     // Byte 10 represents end of line in asm
     fprintf(fpasm, "div_zero db \"Dividing by 0\",10,0\n");
+    fprintf(fpasm, "neg_pow db \"Negative power\",10,0\n");
     fprintf(fpasm, "out_of_range db \"Accessing a memory out of range\",10,0\n");
 }
 
@@ -37,6 +38,12 @@ void escribir_fin(FILE* fpasm){
 
     fprintf(fpasm, "div_zero_f:\n");
     fprintf(fpasm, "push dword div_zero\n");
+    fprintf(fpasm, "call print_string\n");
+    fprintf(fpasm, "add esp, 4\n");
+    fprintf(fpasm, "jmp fin_f\n");
+
+    fprintf(fpasm, "error_potencia:\n");
+    fprintf(fpasm, "push dword neg_pow\n");
     fprintf(fpasm, "call print_string\n");
     fprintf(fpasm, "add esp, 4\n");
     fprintf(fpasm, "jmp fin_f\n");
@@ -96,6 +103,24 @@ void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
     fprintf(fpasm, "cmp ebx, 0\n");
     fprintf(fpasm, "je div_zero_f\n");
     fprintf(fpasm, "idiv ebx\n");
+    fprintf(fpasm, "push dword eax\n");
+}
+
+
+void potencia(FILE* fpasm, int es_variable_1, int es_variable_2, int etiqueta){
+    fprintf(fpasm, "pop dword ecx\n");
+    fprintf(fpasm, "pop dword ebx\n");
+    if (es_variable_1) fprintf(fpasm, "mov ebx, [ebx]\n");
+    if (es_variable_2) fprintf(fpasm, "mov ecx, [ecx]\n");
+    fprintf(fpasm, "mov eax, 1\n");
+    fprintf(fpasm, "inicio_potencia_%d:\n", etiqueta);
+    fprintf(fpasm, "cmp ecx, 0\n");
+    fprintf(fpasm, "jl error_potencia\n");
+    fprintf(fpasm, "je fin_potencia_%d\n", etiqueta);
+    fprintf(fpasm, "imul eax, ebx\n");
+    fprintf(fpasm, "dec ecx\n");
+    fprintf(fpasm, "jmp inicio_potencia_%d\n", etiqueta);
+    fprintf(fpasm, "fin_potencia_%d:\n", etiqueta);
     fprintf(fpasm, "push dword eax\n");
 }
 

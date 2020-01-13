@@ -72,6 +72,7 @@ symbol_tb_com *symb_tb=NULL;
 %token TOK_MAYOR
 %token TOK_TRUE
 %token TOK_FALSE
+%token TOK_EXP
 
 %token <attributes> TOK_CONSTANTE_ENTERA
 %token <attributes> TOK_IDENTIFICADOR
@@ -100,6 +101,7 @@ symbol_tb_com *symb_tb=NULL;
 %left TOK_IGUAL TOK_MENORIGUAL TOK_MENOR TOK_MAYORIGUAL TOK_MAYOR TOK_DISTINTO
 %left TOK_AND TOK_OR
 %left TOK_MAS TOK_MENOS
+%right TOK_EXP
 %left TOK_ASTERISCO TOK_DIVISION
 %right TOK_NOT
 
@@ -583,6 +585,16 @@ exp:
         $$.int_value = $1.int_value && $3.int_value;
         y(yyout, $1.is_address, $3.is_address);
         fprintf(yyout, ";R77:\t<exp> ::= <exp> && <exp>\n");
+    }
+|   exp TOK_EXP exp {
+        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+        $$.type = INTEGER;
+        $$.is_address = 0;
+        potencia(yyout, $1.is_address, $3.is_address, label++);
+        fprintf(yyout, ";R77:\t<exp> ::= <exp> ^ <exp>\n");
     }
 |   exp TOK_OR exp {
         if ($1.type == INTEGER || $3.type == INTEGER){
