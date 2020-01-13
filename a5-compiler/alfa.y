@@ -61,6 +61,10 @@ symbol_tb_com *symb_tb=NULL;
 %token TOK_MENOS
 %token TOK_DIVISION
 %token TOK_ASTERISCO
+%token TOK_MODULO
+%token TOK_MODULOVEC
+%token TOK_SUMAVEC
+%token TOK_ASTERISCOVEC
 %token TOK_AND
 %token TOK_OR
 %token TOK_NOT
@@ -72,6 +76,7 @@ symbol_tb_com *symb_tb=NULL;
 %token TOK_MAYOR
 %token TOK_TRUE
 %token TOK_FALSE
+%token TOK_ACENTO
 
 %token <attributes> TOK_CONSTANTE_ENTERA
 %token <attributes> TOK_IDENTIFICADOR
@@ -96,11 +101,12 @@ symbol_tb_com *symb_tb=NULL;
 %type <attributes> exp_fn
 %type <attributes> lista_expresiones
 %type <attributes> resto_lista_expresiones
+%type <attributes> vec_id
 
 %left TOK_IGUAL TOK_MENORIGUAL TOK_MENOR TOK_MAYORIGUAL TOK_MAYOR TOK_DISTINTO
 %left TOK_AND TOK_OR
 %left TOK_MAS TOK_MENOS
-%left TOK_ASTERISCO TOK_DIVISION
+%left TOK_ASTERISCO TOK_DIVISION TOK_MODULO TOK_MODULOVEC
 %right TOK_NOT
 
 %%
@@ -334,6 +340,111 @@ sentencia_simple:
         }
         fprintf(yyout, ";R38:\t<sentencia_simple> ::= <retorno_funcion>\n");
     }
+|   vec_id TOK_MODULOVEC exp {
+        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+
+        fprintf(yyout, "pop dword ecx\n");
+
+        char op[255];
+        for(int i=0; i<$1.vec_size; i++){
+            sprintf(op, "%d", i);
+            // escribir el indice del vector
+            escribir_operando(yyout, op, 0);
+            // escribir el elemento del vector indexado por el indice anterior
+            // (el indice sale de la pila y entra el vector[i])
+            escribir_elemento_vector(yyout, $1.lexeme, $1.vec_size, 0);
+            // escribir el operando por el que se va a hacer modulo
+            fprintf(yyout, "push dword ecx\n");
+            // el primero es un elemento vector (variable) y el otro un IMM
+            modulo(yyout, 1, 0);
+            // AHORA ASIGNAMOS
+            // escribir el indice del vector
+            escribir_operando(yyout, op, 0);
+            // escribir el elemento del vector indexado por el indice anterior
+            // (el indice sale de la pila y entra el vector[i])
+            escribir_elemento_vector(yyout, $1.lexeme, $1.vec_size, 0);
+            // 0 porque el resultado del modulo ya es un IMM
+            asignarDestinoEnPila(yyout, 0);
+
+        }
+
+        fprintf(yyout, ";R74:\t<sentencia_simple> ::= <vec_id> %% <exp>\n");
+    }
+|   vec_id TOK_SUMAVEC exp {
+        if ($1.type != $3.type){
+            printf("****Error semantico en lin %lu: Opereación vectorial con tipos diferentes.\n", nlines);
+            return -1;
+        }
+
+        fprintf(yyout, "pop dword ecx\n");
+
+        char op[255];
+        for(int i=0; i<$1.vec_size; i++){
+            sprintf(op, "%d", i);
+            // escribir el indice del vector
+            escribir_operando(yyout, op, 0);
+            // escribir el elemento del vector indexado por el indice anterior
+            // (el indice sale de la pila y entra el vector[i])
+            escribir_elemento_vector(yyout, $1.lexeme, $1.vec_size, 0);
+            // escribir el operando por el que se va a hacer modulo
+            fprintf(yyout, "push dword ecx\n");
+            // el primero es un elemento vector (variable) y el otro un IMM
+            if ($1.type == BOOLEAN) {
+                o(yyout, 1, 0);
+            } else {
+                sumar(yyout, 1, 0);
+            }
+            // AHORA ASIGNAMOS
+            // escribir el indice del vector
+            escribir_operando(yyout, op, 0);
+            // escribir el elemento del vector indexado por el indice anterior
+            // (el indice sale de la pila y entra el vector[i])
+            escribir_elemento_vector(yyout, $1.lexeme, $1.vec_size, 0);
+            // 0 porque el resultado del modulo ya es un IMM
+            asignarDestinoEnPila(yyout, 0);
+
+        }
+        fprintf(yyout, ";R74:\t<sentencia_simple> ::= <vec_id> .+ <exp>\n");
+    }
+|   vec_id TOK_ASTERISCOVEC exp {
+        if ($1.type != $3.type){
+            printf("****Error semantico en lin %lu: Opereación vectorial con tipos diferentes.\n", nlines);
+            return -1;
+        }
+
+        fprintf(yyout, "pop dword ecx\n");
+
+        char op[255];
+        for(int i=0; i<$1.vec_size; i++){
+            sprintf(op, "%d", i);
+            // escribir el indice del vector
+            escribir_operando(yyout, op, 0);
+            // escribir el elemento del vector indexado por el indice anterior
+            // (el indice sale de la pila y entra el vector[i])
+            escribir_elemento_vector(yyout, $1.lexeme, $1.vec_size, 0);
+            // escribir el operando por el que se va a hacer modulo
+            fprintf(yyout, "push dword ecx\n");
+            // el primero es un elemento vector (variable) y el otro un IMM
+            if ($1.type == BOOLEAN) {
+                y(yyout, 1, 0);
+            } else {
+                multiplicar(yyout, 1, 0);
+            }
+            // AHORA ASIGNAMOS
+            // escribir el indice del vector
+            escribir_operando(yyout, op, 0);
+            // escribir el elemento del vector indexado por el indice anterior
+            // (el indice sale de la pila y entra el vector[i])
+            escribir_elemento_vector(yyout, $1.lexeme, $1.vec_size, 0);
+            // 0 porque el resultado del modulo ya es un IMM
+            asignarDestinoEnPila(yyout, 0);
+
+        }
+        fprintf(yyout, ";R74:\t<vec_id> ::= <identificador> .* <exp>\n");
+    }
 ;
 
 bloque:
@@ -343,6 +454,7 @@ bloque:
 
 asignacion:
     TOK_IDENTIFICADOR TOK_ASIGNACION exp {
+        fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
         int is_local = -1;
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
@@ -366,11 +478,12 @@ asignacion:
             }
         } else {
             asignar(yyout, symb->id, $3.is_address);
-            fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
         }
+
         _symbol_delete(symb);
     }
 |   elemento_vector TOK_ASIGNACION exp {
+        fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
         if($1.type != $3.type) {
             printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
             return -1;
@@ -384,13 +497,12 @@ asignacion:
         escribir_operando(yyout, $1.vector_index, $1.vector_index_is_address);
         escribir_elemento_vector(yyout, $1.lexeme, symb->len, $3.is_address);
         asignarDestinoEnPila(yyout, $3.is_address);
-        fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
         _symbol_delete(symb);
     }
 ;
 
 elemento_vector:
-    identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
+    TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
         if($3.type != INTEGER){
             printf("****Error semantico en lin %ld: El indice en una operacion de indexacion tiene que ser de tipo entero.\n", nlines);
             return -1;
@@ -478,6 +590,7 @@ while_exp:
 
 lectura:
     TOK_SCANF identificador {
+        fprintf(yyout, ";R54:\t<lectura> ::= scanf <identificador>\n");
         int is_local = -1;
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $2.lexeme, &is_local);
@@ -493,7 +606,6 @@ lectura:
 
         leer(yyout, symb->id, symb->symb_type);
         _symbol_delete(symb);
-        fprintf(yyout, ";R54:\t<lectura> ::= scanf <identificador>\n");
     }
 ;
 
@@ -514,15 +626,19 @@ retorno_funcion:
 
 exp:
     exp TOK_MAS exp {
-        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
-            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+        if ($1.type != $3.type ){
+            printf("****Error semantico en lin %lu: Operación con operandos de distinto tipo.\n", nlines);
             return -1;
         }
-        $$.type = INTEGER;
+        $$.type = $1.type;
         $$.is_address = 0;
-        $$.int_value = $1.int_value + $3.int_value;
-        // escribir_operando(yyout, $$.lexeme, $1.is_address);
-        sumar(yyout, $1.is_address, $3.is_address);
+        if ($1.type == BOOLEAN){
+            $$.int_value = $1.int_value || $3.int_value;
+            o(yyout, $1.is_address, $3.is_address);
+        } else {
+            $$.int_value = $1.int_value + $3.int_value;
+            sumar(yyout, $1.is_address, $3.is_address);
+        }
         fprintf(yyout, ";R72:\t<exp> ::= <exp> + <exp>\n");
     }
 |   exp TOK_MENOS exp {
@@ -551,16 +667,36 @@ exp:
         dividir(yyout, $1.is_address, $3.is_address);
         fprintf(yyout, ";R74:\t<exp> ::= <exp> / <exp>\n");
     }
-|   exp TOK_ASTERISCO exp {
-        if ($1.type == BOOLEAN || $3.type == BOOLEAN){
-            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
-            return -1;
+|   exp TOK_MODULO exp {
+            if ($1.type == BOOLEAN || $3.type == BOOLEAN){
+                printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+                return -1;
+            }
+            $$.type = INTEGER;
+            $$.is_address = 0;
+            if (!$3.int_value) {
+                $$.int_value = -1;
+            } else {
+                $$.int_value = $1.int_value % $3.int_value;
+            }
+            modulo(yyout, $1.is_address, $3.is_address);
+            fprintf(yyout, ";R74:\t<exp> ::= <exp> %% <exp>\n");
         }
-        $$.type = INTEGER;
-        $$.is_address = 0;
+|   exp TOK_ASTERISCO exp {
+    if ($1.type != $3.type ){
+        printf("****Error semantico en lin %lu: Operación con operandos de distinto tipo.\n", nlines);
+        return -1;
+    }
+    $$.type = $1.type;
+    $$.is_address = 0;
+    if ($1.type == BOOLEAN){
+        $$.int_value = $1.int_value && $3.int_value;
+        y(yyout, $1.is_address, $3.is_address);
+    } else {
         $$.int_value = $1.int_value * $3.int_value;
         multiplicar(yyout, $1.is_address, $3.is_address);
-        fprintf(yyout, ";R75:\t<exp> ::= <exp> * <exp>\n");
+    }
+    fprintf(yyout, ";R75:\t<exp> ::= <exp> * <exp>\n");
     }
 |   TOK_MENOS exp {
         if ($2.type == BOOLEAN){
@@ -607,6 +743,7 @@ exp:
         fprintf(yyout, ";R79:\t<exp> ::= !<exp>\n");
     }
 |   TOK_IDENTIFICADOR {
+        fprintf(yyout, ";R80:\t<exp> ::= <identificador>\n");
         int is_local = -1;
         Symbol *symb=NULL;
         symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
@@ -633,8 +770,13 @@ exp:
             escribir_operando(yyout, symb->id, 1);
         }
 
-        fprintf(yyout, ";R80:\t<exp> ::= <identificador>\n");
         _symbol_delete(symb);
+    }
+|   TOK_ACENTO vec_id {
+        char op[255];
+        sprintf(op, "%d", $2.vec_size);
+        escribir_operando(yyout, op, 0);
+        fprintf(yyout, ";R800:\t<exp> ::= ^<vec_id>\n");
     }
 |   constante {
         $$.type = $1.type;
@@ -853,6 +995,26 @@ identificador: TOK_IDENTIFICADOR {
     fprintf(yyout, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
 }
 ;
+
+vec_id: TOK_IDENTIFICADOR {
+    int is_local = -1;
+    Symbol *symb=NULL;
+    symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if(!symb){
+        printf("****Error semantico en lin %ld: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+        return -1;
+    }
+    if(symb->var_cat != VECTOR){
+        _symbol_delete(symb);
+        printf("****Error semantico en lin %lu: Operacion modulo vector a un escalar\n", nlines);
+        return -1;
+    }
+    $$.type = symb->symb_type;
+    $$.is_address = 1;
+    if (symb->var_cat == VECTOR)
+        $$.vec_size = symb->len;
+    strcpy($$.lexeme, symb->id);
+}
 
 %%
 

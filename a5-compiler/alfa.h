@@ -16,6 +16,7 @@ typedef struct _attr_type {
     int is_address;
     int vector_index_is_address;
     int label;
+    int vec_size;
 } attr_type;
 
 #endif /* ALFA_H */

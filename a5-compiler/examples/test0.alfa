@@ -1,0 +1,27 @@
+main {
+    array int[3] c;
+
+    c[0] = 3;
+    c[1] = 2;
+    c[2] = 1;
+
+    printf ^c;
+
+    c .% 2;
+    @ Priting c
+    printf c[0];
+    printf c[1];
+    printf c[2];
+
+    c .+ 2;
+    @ Priting c
+    printf c[0];
+    printf c[1];
+    printf c[2];
+
+    c .* 2;
+    @ Priting c
+    printf c[0];
+    printf c[1];
+    printf c[2];
+}

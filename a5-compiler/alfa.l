@@ -17,6 +17,7 @@ int is_morpho;
 %%
 
 "//".* { ncols += yyleng; }
+"@".* { ncols += yyleng; }
 " "+ { ncols += yyleng; }
 "\t"+ { ncols += yyleng; }
 "\n" { ncols = 1; nlines++; }
@@ -44,6 +45,10 @@ return { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_RETURN
 "-" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MENOS; }
 "/" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_DIVISION; }
 "*" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_ASTERISCO; }
+"%" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MODULO; }
+".%" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MODULOVEC; }
+".+" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_SUMAVEC; }
+".*" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_ASTERISCOVEC; }
 "&&" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_AND; }
 "||" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_OR; }
 "!" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_NOT; }
@@ -55,6 +60,7 @@ return { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_RETURN
 ">" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MAYOR; }
 true { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_TRUE; }
 false { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_FALSE; }
+"^" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_ACENTO; }
 
 [0-9]+ {
     ncols += yyleng;
