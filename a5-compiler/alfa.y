@@ -72,6 +72,7 @@ symbol_tb_com *symb_tb=NULL;
 %token TOK_MAYOR
 %token TOK_TRUE
 %token TOK_FALSE
+%token TOK_INCREMENTO
 
 %token <attributes> TOK_CONSTANTE_ENTERA
 %token <attributes> TOK_IDENTIFICADOR
@@ -334,7 +335,68 @@ sentencia_simple:
         }
         fprintf(yyout, ";R38:\t<sentencia_simple> ::= <retorno_funcion>\n");
     }
+|   incremento
 ;
+
+incremento: TOK_IDENTIFICADOR TOK_INCREMENTO exp {
+    int is_local=-1;
+    Symbol *symb = NULL;
+    symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+    if(!symb){
+        printf("****Error semantico en lin %lu: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+        return -1;
+    }
+    if(symb->symb_cat == FUNCTION || symb->symb_type != INTEGER){
+        printf("****Error semantico en lin %lu: Asignacion incompatible.\n", nlines);
+        _symbol_delete(symb);
+        return -1;
+    }
+    if ($3.type != INTEGER){
+        printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+        _symbol_delete(symb);
+        return -1;
+    }
+    if (symb->var_cat == SCALAR){
+
+        if(is_local){ /* Local variable */
+            if(symb->symb_cat == PARAMETER){
+                escribirParametro(yyout, symb->pos, num_parametros);
+            } else {
+                escribirVariableLocal(yyout, symb->pos);
+            }
+        } else {
+            escribir_operando(yyout, $1.lexeme, 1);
+        }
+
+        sumar(yyout, $3.is_address, 1);
+
+        if(is_local){ /* Local variable */
+            if(symb->symb_cat == PARAMETER){
+                escribirParametro(yyout, symb->pos, num_parametros);
+                asignarDestinoEnPila(yyout, 0);
+            } else {
+                escribirVariableLocal(yyout, symb->pos);
+                asignarDestinoEnPila(yyout, 0);
+            }
+        } else {
+            asignar(yyout, symb->id, 0);
+        }
+
+    } else {
+        fprintf(yyout, "pop dword ecx\n");
+        char op[255];
+        for (int i = 0; i < symb->len; i++){
+            sprintf(op, "%d", i);
+            escribir_operando(yyout, op, 0);
+            escribir_elemento_vector(yyout, $1.lexeme, symb->len, 0);
+            fprintf(yyout, "push dword ecx\n");
+            sumar(yyout, 1, $3.is_address);
+            escribir_operando(yyout, op, 0);
+            escribir_elemento_vector(yyout, $1.lexeme, symb->len, 0);
+            asignarDestinoEnPila(yyout, 0);
+        }
+    }
+}
 
 bloque:
     condicional { fprintf(yyout, ";R40:\t<bloque> ::= <condicional>\n"); }

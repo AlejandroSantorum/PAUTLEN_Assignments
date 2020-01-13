@@ -47,6 +47,7 @@ return { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_RETURN
 "&&" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_AND; }
 "||" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_OR; }
 "!" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_NOT; }
+"+=" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_INCREMENTO; }
 "==" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_IGUAL; }
 "!=" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_DISTINTO; }
 "<=" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MENORIGUAL; }
