@@ -72,6 +72,7 @@ symbol_tb_com *symb_tb=NULL;
 %token TOK_MAYOR
 %token TOK_TRUE
 %token TOK_FALSE
+%token TOK_MOD
 
 %token <attributes> TOK_CONSTANTE_ENTERA
 %token <attributes> TOK_IDENTIFICADOR
@@ -387,6 +388,78 @@ asignacion:
         fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
         _symbol_delete(symb);
     }
+|   TOK_IDENTIFICADOR TOK_MOD exp {
+        int is_local = -1;
+        Symbol *symb=NULL;
+        symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        if(!symb){
+            printf("****Error semantico en lin %lu: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+            return -1;
+        }
+        if(symb->symb_cat == FUNCTION || symb->var_cat == VECTOR || symb->symb_type !=  $3.type){
+            printf("****Error semantico en lin %lu: Asignacion incompatible.\n", nlines);
+            _symbol_delete(symb);
+            return -1;
+        }
+
+        if($3.type != INTEGER){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            _symbol_delete(symb);
+            return -1;
+        }
+
+        fprintf(yyout, "pop dword ecx\n");
+
+        if(is_local){ /* Local variable */
+            if(symb->symb_cat == PARAMETER){
+                escribirParametro(yyout, symb->pos, num_parametros);
+            } else {
+                escribirVariableLocal(yyout, symb->pos);
+            }
+        } else {
+            escribir_operando(yyout, symb->id, 1);
+        }
+
+        fprintf(yyout, "push dword ecx\n");
+
+        modulo(yyout, 1, $3.is_address);
+
+        if(is_local){ /* Local variable */
+            if(symb->symb_cat == PARAMETER){
+                escribirParametro(yyout, symb->pos, num_parametros);
+                asignarDestinoEnPila(yyout, 0);
+            } else {
+                escribirVariableLocal(yyout, symb->pos);
+                asignarDestinoEnPila(yyout, 0);
+            }
+        } else {
+            asignar(yyout, symb->id, 0);
+            fprintf(yyout, ";RT43:\t<asignacion> ::= <identificador> %%= <exp>\n");
+        }
+        _symbol_delete(symb);
+    }
+|   elemento_vector TOK_MOD exp {
+        if($1.type != $3.type) {
+            printf("****Error semantico en lin %ld: Asignacion incompatible.\n", nlines);
+            return -1;
+        }
+        if($1.type != INTEGER){
+            printf("****Error semantico en lin %lu: Operacion aritmetica con operandos boolean.\n", nlines);
+            return -1;
+        }
+        int is_local;
+        Symbol *symb = symb_tb_com_search(symb_tb, $1.lexeme, &is_local);
+        if(!symb){
+            printf("****Error semantico en lin %lu: Acceso a variable no declarada (%s).\n", nlines, $1.lexeme);
+            return -1;
+        }
+        modulo(yyout, $1.is_address, $3.is_address);
+        escribir_operando(yyout, $1.vector_index, $1.vector_index_is_address);
+        escribir_elemento_vector(yyout, $1.lexeme, symb->len, $1.vector_index_is_address);
+        asignarDestinoEnPila(yyout, 0);
+        fprintf(yyout, ";RT44:\t<asignacion> ::= <elemento_vector> %%= <exp>\n");
+        _symbol_delete(symb);
+}
 ;
 
 elemento_vector:

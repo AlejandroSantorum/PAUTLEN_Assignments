@@ -40,6 +40,7 @@ return { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_RETURN
 "{" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_LLAVEIZQUIERDA; }
 "}" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_LLAVEDERECHA; }
 "=" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_ASIGNACION; }
+"%=" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MOD; }
 "+" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MAS; }
 "-" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_MENOS; }
 "/" { ncols += yyleng; fprintf(yyout, ";D:\t%s\n", yytext); return TOK_DIVISION; }

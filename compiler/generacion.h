@@ -101,6 +101,7 @@ void no(FILE* fpasm, int es_variable, int cuantos_no);
 */
 void igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);
 void distinto(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);
+void modulo(FILE* fpasm, int es_variable_1, int es_variable_2);
 void menor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);
 void mayor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);
 void menor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta);

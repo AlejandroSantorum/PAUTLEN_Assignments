@@ -10,6 +10,7 @@ void escribir_subseccion_data(FILE* fpasm){
     fprintf(fpasm, "segment .data\n");
     // Byte 10 represents end of line in asm
     fprintf(fpasm, "div_zero db \"Dividing by 0\",10,0\n");
+    fprintf(fpasm, "mod_zero db \"Modulo by 0\",10,0\n");
     fprintf(fpasm, "out_of_range db \"Accessing a memory out of range\",10,0\n");
 }
 
@@ -37,6 +38,12 @@ void escribir_fin(FILE* fpasm){
 
     fprintf(fpasm, "div_zero_f:\n");
     fprintf(fpasm, "push dword div_zero\n");
+    fprintf(fpasm, "call print_string\n");
+    fprintf(fpasm, "add esp, 4\n");
+    fprintf(fpasm, "jmp fin_f\n");
+
+    fprintf(fpasm, "mod_zero_f:\n");
+    fprintf(fpasm, "push dword mod_zero\n");
     fprintf(fpasm, "call print_string\n");
     fprintf(fpasm, "add esp, 4\n");
     fprintf(fpasm, "jmp fin_f\n");
@@ -97,6 +104,15 @@ void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
     fprintf(fpasm, "je div_zero_f\n");
     fprintf(fpasm, "idiv ebx\n");
     fprintf(fpasm, "push dword eax\n");
+}
+
+void modulo(FILE* fpasm, int es_variable_1, int es_variable_2){
+    _pop_valores_reg(fpasm, es_variable_1, es_variable_2);
+    fprintf(fpasm, "cdq\n");
+    fprintf(fpasm, "cmp ebx, 0\n");
+    fprintf(fpasm, "je mod_zero_f\n");
+    fprintf(fpasm, "idiv ebx\n");
+    fprintf(fpasm, "push dword edx\n");
 }
 
 void o(FILE* fpasm, int es_variable_1, int es_variable_2){
