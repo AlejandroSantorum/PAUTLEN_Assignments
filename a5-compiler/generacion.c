@@ -108,6 +108,15 @@ void modulo(FILE* fpasm, int es_variable_1, int es_variable_2){
     fprintf(fpasm, "push dword edx\n");
 }
 
+void modulo(FILE* fpasm, int es_variable_1, int es_variable_2){
+    _pop_valores_reg(fpasm, es_variable_1, es_variable_2);
+    fprintf(fpasm, "cdq\n");
+    fprintf(fpasm, "cmp ebx, 0\n");
+    fprintf(fpasm, "je div_zero_f\n");
+    fprintf(fpasm, "idiv ebx\n");
+    fprintf(fpasm, "push dword edx\n");
+}
+
 void o(FILE* fpasm, int es_variable_1, int es_variable_2){
     _pop_valores_reg(fpasm, es_variable_1, es_variable_2);
     fprintf(fpasm, "or eax, ebx\n");
